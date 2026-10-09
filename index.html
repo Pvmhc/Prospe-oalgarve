@@ -1,14 +1,18 @@
 <!DOCTYPE html>
 <html lang="pt-PT"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#008200">
+<meta name="theme-color" id="mTc" content="#008200">
 <meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Prospeção">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23008200'/%3E%3Cpath d='M8 16l5 5 11-11' stroke='white' stroke-width='3' fill='none' stroke-linecap='round'/%3E%3C/svg%3E">
 <script>window.rbDeferredInstallPrompt=null;window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();window.rbDeferredInstallPrompt=e});window.addEventListener('appinstalled',function(){try{localStorage.setItem('prospecao_install_prompt_v2','1')}catch(e){}});</script>
+<script>try{var _t=localStorage.getItem('prospTema');if(_t==='dark'||_t==='light')document.documentElement.setAttribute('data-theme',_t)}catch(e){}</script>
 <title>Prospeção</title>
 <style>
 :root{--p:#008200;--bg:#f4f7f5;--card:#fff;--tx:#0b0c10;--mu:#657786;--bd:#e1e8ed;--bl:#2563eb;--blb:#eff6ff;--gn:#008200;--gnb:#e6f6e6;--rd:#ff2b2b;--rdb:#fff5f5;--am:#b45309;--amb:#fef3e2;--pu:#7c3aed;--pub:#f3eeff}
-@media(prefers-color-scheme:dark){:root{--bg:#0f1412;--card:#1a211e;--tx:#eef2f0;--mu:#9aa8a2;--bd:#2b3632;--blb:#16233f;--gnb:#12301a;--rdb:#3a1616;--amb:#3a2a12;--pub:#2a1f45}}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1412;--card:#1a211e;--tx:#eef2f0;--mu:#9aa8a2;--bd:#2b3632;--blb:#16233f;--gnb:#12301a;--rdb:#3a1616;--amb:#3a2a12;--pub:#2a1f45;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0f1412;--card:#1a211e;--tx:#eef2f0;--mu:#9aa8a2;--bd:#2b3632;--blb:#16233f;--gnb:#12301a;--rdb:#3a1616;--amb:#3a2a12;--pub:#2a1f45;color-scheme:dark}
+:root[data-theme="light"]{color-scheme:light}
+.tg{padding:9px 11px;font-size:15px;line-height:1}
 *{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--tx);padding:env(safe-area-inset-top) 12px 40px}
 .w{max-width:720px;margin:0 auto}button,select,input,textarea{font:inherit;color:inherit}
 .top{display:flex;align-items:center;gap:8px;padding:12px 0;position:sticky;top:0;background:var(--bg);z-index:5}
@@ -44,7 +48,8 @@ textarea{width:100%;margin-top:10px;border:1px solid var(--bd);border-radius:10p
 .lock-teclado{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;width:100%}.lock-tecla{height:62px;border-radius:16px;border:1px solid #e5e7eb;background:#fff;color:#111827;font-family:Arial,Helvetica,sans-serif;font-size:1.6rem;font-weight:700;cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,.08);transition:transform .08s,background .08s;touch-action:manipulation}
 .lock-tecla:active{transform:scale(.95);background:#f3f4f6}.lock-tecla.vazia{visibility:hidden}.lock-tecla.apagar{background:transparent;border-color:transparent;box-shadow:none;color:#6b7280;display:flex;align-items:center;justify-content:center}.lock-tecla.apagar svg{width:24px;height:24px}
 @keyframes abanarPin{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
-@media(prefers-color-scheme:dark){.lock-tecla:not(.apagar),.lock-gestor-foto{background:var(--card);color:var(--tx);border-color:var(--bd)}}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]) .lock-tecla:not(.apagar),:root:not([data-theme="light"]) .lock-gestor-foto{background:var(--card);color:var(--tx);border-color:var(--bd)}:root:not([data-theme="light"]) .lock-tecla:active{background:var(--bd)}}
+:root[data-theme="dark"] .lock-tecla:not(.apagar),:root[data-theme="dark"] .lock-gestor-foto{background:var(--card);color:var(--tx);border-color:var(--bd)}:root[data-theme="dark"] .lock-tecla:active{background:var(--bd)}
 .mt{margin-top:6px;border:1px dashed var(--bd);border-radius:10px;padding:8px}
 .mg{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.mi{background:var(--card);border:1px solid var(--bd);border-radius:8px;padding:6px 4px;text-align:center}.mi b{display:block;font-size:15px}.mi span{font-size:11px;color:var(--mu)}.mx{font-size:11.5px;color:var(--mu);margin-top:6px}
 .kps{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.kp{background:var(--card);border:1px solid var(--bd);border-radius:8px;padding:6px 8px;text-align:center}.kp span{display:block;font-size:11px;color:var(--mu);margin-bottom:2px}.kp b{font-size:15px;font-weight:700}.kp b.q{color:var(--rd)}.kp b.m{color:var(--am)}.kp b.f{color:var(--bl)}
@@ -70,13 +75,19 @@ textarea{width:100%;margin-top:10px;border:1px solid var(--bd);border-radius:10p
 .box-painel.box-cerveja .sec{color:#008200}
 
 @media(prefers-color-scheme:dark){
-  .box-painel.box-ficha{background:#171d1b;border-left-color:#94a3b8}
-  .box-painel.box-ficha .sec{color:#cbd5e1}
-  .box-painel.box-negocio{background:#111c2e;border-left-color:#3b82f6}
-  .box-painel.box-negocio .sec{color:#93c5fd}
-  .box-painel.box-cerveja{background:#0e2316;border-left-color:#22c55e}
-  .box-painel.box-cerveja .sec{color:#86efac}
+  :root:not([data-theme="light"]) .box-painel.box-ficha{background:#171d1b;border-left-color:#94a3b8}
+  :root:not([data-theme="light"]) .box-painel.box-ficha .sec{color:#cbd5e1}
+  :root:not([data-theme="light"]) .box-painel.box-negocio{background:#111c2e;border-left-color:#3b82f6}
+  :root:not([data-theme="light"]) .box-painel.box-negocio .sec{color:#93c5fd}
+  :root:not([data-theme="light"]) .box-painel.box-cerveja{background:#0e2316;border-left-color:#22c55e}
+  :root:not([data-theme="light"]) .box-painel.box-cerveja .sec{color:#86efac}
 }
+:root[data-theme="dark"] .box-painel.box-ficha{background:#171d1b;border-left-color:#94a3b8}
+:root[data-theme="dark"] .box-painel.box-ficha .sec{color:#cbd5e1}
+:root[data-theme="dark"] .box-painel.box-negocio{background:#111c2e;border-left-color:#3b82f6}
+:root[data-theme="dark"] .box-painel.box-negocio .sec{color:#93c5fd}
+:root[data-theme="dark"] .box-painel.box-cerveja{background:#0e2316;border-left-color:#22c55e}
+:root[data-theme="dark"] .box-painel.box-cerveja .sec{color:#86efac}
 
 /* Banner de Proposta */
 .prop-card-banner{margin-top:10px;border-radius:10px;padding:9px 11px;display:flex;align-items:center;justify-content:space-between;gap:8px;box-sizing:border-box}
@@ -295,7 +306,7 @@ textarea{width:100%;margin-top:10px;border:1px solid var(--bd);border-radius:10p
 <p class="lock-titulo" id="lgTit"></p><div class="lock-dots" id="lgDots"><span class="lock-dot"></span><span class="lock-dot"></span><span class="lock-dot"></span><span class="lock-dot"></span></div><div class="lock-erro-msg" id="lgErro"></div><div class="lock-teclado" id="lgKb"></div>
 <button type="button" class="lock-link" id="lgLink" onclick="lgLinkAcao()">Mudar PIN</button></div></div></div>
 <div id="ap" hidden>
-<div class="top"><button class="btn" id="bV" onclick="voltar()" hidden>← Picos</button><h1 id="tt">Prospeção</h1><button class="btn" id="bI" onclick="mostrarInstallPrompt(true)" hidden>📲 Instalar app</button><span class="gw" id="gW" hidden><span class="gav" id="gAv"></span><select id="gSel" class="btn" onchange="S.g=this.value;draw()"></select></span></div>
+<div class="top"><button class="btn" id="bV" onclick="voltar()" hidden>← Picos</button><h1 id="tt">Prospeção</h1><button class="btn tg" id="bT" onclick="alternarTema()" aria-label="Alternar tema claro/escuro"></button><button class="btn" id="bI" onclick="mostrarInstallPrompt(true)" hidden>📲 Instalar app</button><span class="gw" id="gW" hidden><span class="gav" id="gAv"></span><select id="gSel" class="btn" onchange="S.g=this.value;draw()"></select></span></div>
 <div class="tabs"><button class="btn on" id="tT" onclick="tab('todos')">Lista</button><button class="btn" id="tS" onclick="tab('semana')">Semana</button></div>
 <div id="vS" hidden><div class="nav"><button class="btn" onclick="sem(-7)">‹</button><b id="sT"></b><button class="btn" onclick="sem(7)">›</button></div><div class="dias" id="ds"></div></div>
 <div id="vT"><div class="fil"><input id="q" placeholder="Procurar nome…" oninput="S.q=this.value;S.so='';S.n=50;draw()"><select id="ft" onchange="S.t=this.value;S.n=50;draw()"><option value="">Todos os tipos</option><option>Prospeção</option><option>Reconquista</option><option>Execução Barril</option></select><select id="fc" onchange="S.c=this.value;S.n=50;draw()"></select><select id="fe" onchange="S.e=this.value;S.n=50;draw()"><option value="abertos">Por conquistar</option><option value="">Todos</option><option value="conquistado">Conquistados</option><option value="recusou">Recusaram</option><option value="novavisita">Nova visita</option><option value="arquivado">Arquivados</option></select></div></div>
@@ -714,5 +725,13 @@ window.mostrarInstallPrompt=function(force){const o=$('ipOv');if(!o)return;if(st
 window.fecharInstall=function(v){const o=$('ipOv');if(o)o.classList.remove('show');if(v){try{localStorage.setItem(K,String(Date.now()))}catch(e){}}};
 try{const b=$('bI');if(b)b.hidden=st()||new URLSearchParams(location.search).get('embed')==='1'}catch(e){}
 window.instalarApp=async function(){const p=window.rbDeferredInstallPrompt;if(!p){fecharInstall(false);return}p.prompt();try{const c=await p.userChoice;if(c&&c.outcome==='accepted'){try{localStorage.setItem(K,'1')}catch(e){}}}catch(e){}window.rbDeferredInstallPrompt=null;fecharInstall(true)}})();
+</script>
+<script>
+(function(){const K='prospTema',R=document.documentElement,mq=matchMedia('(prefers-color-scheme:dark)');
+function esc(){const t=R.getAttribute('data-theme');return t?t==='dark':mq.matches}
+function pint(){const d=esc(),b=document.getElementById('bT'),m=document.getElementById('mTc');if(b){b.textContent=d?'☀️':'🌙';b.title=d?'Mudar para tema claro':'Mudar para tema escuro'}if(m)m.setAttribute('content',d?'#0f1412':'#008200')}
+window.alternarTema=function(){const n=esc()?'light':'dark';R.setAttribute('data-theme',n);try{localStorage.setItem(K,n)}catch(e){}pint()};
+try{mq.addEventListener('change',pint)}catch(e){}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',pint);else pint()})();
 </script>
 </body></html>
