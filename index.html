@@ -61,6 +61,19 @@ textarea{width:100%;margin-top:10px;border:1px solid var(--bd);border-radius:10p
 .ipb h3{font-size:19px;font-weight:800;margin:0 0 8px}.ipb p{font-size:13px;line-height:1.55;color:var(--mu);margin:0 auto 16px;max-width:300px}
 .ips{text-align:left;background:var(--bg);border:1px solid var(--bd);border-radius:12px;padding:12px;margin-bottom:14px}.ips ol{margin:0;padding-left:18px;font-size:12.5px;line-height:1.7;color:var(--mu)}.ips b{color:var(--p)}
 .ipa{display:flex;flex-direction:column;gap:9px}.ipa button{width:100%;border-radius:100px;padding:12px 16px;font-size:13px;font-weight:700;cursor:pointer}.ipy{border:0;background:var(--p);color:#fff}.ipn{border:1px solid var(--bd);background:var(--card);color:var(--mu)}
+
+.gw{position:relative;display:flex;align-items:center;max-width:62%;min-width:0}
+.gav{position:absolute;left:6px;top:50%;transform:translateY(-50%);width:30px;height:30px;border-radius:50%;overflow:hidden;background:var(--bd);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:var(--mu);pointer-events:none;border:1px solid var(--bd)}
+.gav img{width:100%;height:100%;object-fit:cover;display:block}
+.gw select{height:42px;padding:6px 8px 6px 44px;max-width:100%;text-overflow:ellipsis}
+.gw select:disabled{opacity:1;color:var(--tx)}
+.ed{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin:6px 0}.ed::-webkit-scrollbar{display:none}
+.ed .btn{flex:1 1 auto;white-space:nowrap;padding:8px 6px;font-size:11.5px;text-align:center}
+@media(max-width:1023px){
+ .fil{margin:6px 0 4px}
+ .fil input{flex:1 1 100%;min-width:0}
+ .fil select{flex:1 1 0;min-width:0;font-size:12.5px;padding:9px 4px;text-overflow:ellipsis}
+}
 @media(max-width:1023px){#dp{display:none}}
 @media(min-width:1024px){
  body{padding-left:28px;padding-right:28px}.w{max-width:1320px}.top h1{font-size:22px}
@@ -103,7 +116,7 @@ textarea{width:100%;margin-top:10px;border:1px solid var(--bd);border-radius:10p
 <p class="lock-titulo" id="lgTit"></p><div class="lock-dots" id="lgDots"><span class="lock-dot"></span><span class="lock-dot"></span><span class="lock-dot"></span><span class="lock-dot"></span></div><div class="lock-erro-msg" id="lgErro"></div><div class="lock-teclado" id="lgKb"></div>
 <button type="button" class="lock-link" id="lgLink" onclick="lgLinkAcao()">Mudar PIN</button></div></div></div>
 <div id="ap" hidden>
-<div class="top"><button class="btn" id="bV" onclick="voltar()" hidden>← Picos</button><h1 id="tt">Prospeção</h1><button class="btn" id="bI" onclick="mostrarInstallPrompt(true)" hidden>📲 Instalar app</button><select id="gSel" class="btn" hidden onchange="S.g=this.value;draw()"></select></div>
+<div class="top"><button class="btn" id="bV" onclick="voltar()" hidden>← Picos</button><h1 id="tt">Prospeção</h1><button class="btn" id="bI" onclick="mostrarInstallPrompt(true)" hidden>📲 Instalar app</button><span class="gw" id="gW" hidden><span class="gav" id="gAv"></span><select id="gSel" class="btn" onchange="S.g=this.value;draw()"></select></span></div>
 <div class="tabs"><button class="btn on" id="tT" onclick="tab('todos')">Lista</button><button class="btn" id="tS" onclick="tab('semana')">Semana</button></div>
 <div id="vS" hidden><div class="nav"><button class="btn" onclick="sem(-7)">‹</button><b id="sT"></b><button class="btn" onclick="sem(7)">›</button></div><div class="dias" id="ds"></div></div>
 <div id="vT"><div class="fil"><input id="q" placeholder="Procurar nome…" oninput="S.q=this.value;S.so='';S.n=50;draw()"><select id="ft" onchange="S.t=this.value;S.n=50;draw()"><option value="">Todos os tipos</option><option>Prospeção</option><option>Reconquista</option><option>Execução Barril</option></select><select id="fc" onchange="S.c=this.value;S.n=50;draw()"></select><select id="fe" onchange="S.e=this.value;S.n=50;draw()"><option value="abertos">Por conquistar</option><option value="">Todos</option><option value="conquistado">Conquistados</option><option value="recusou">Recusaram</option><option value="novavisita">Nova visita</option></select></div></div>
@@ -206,9 +219,11 @@ const cl=r=>{const h=card(r);return DK()?h.slice(0,h.indexOf('<div class="dt">')
 function painel(){const p=$('dp');if(!DK()){p.innerHTML='';return}const r=S.rows.find(x=>x.id===S.o);p.innerHTML=r?card(r):'<div class="vz">Seleciona um estabelecimento da lista para ver os detalhes.</div>'}
 function draw(){draw0();painel()}
 try{matchMedia('(min-width:1024px)').addEventListener('change',()=>{if(!$('ap').hidden)draw()})}catch(e){}
+function fotoDe(n){if(!n)return'';if(!Object.keys(LG.fotos).length){try{const c=JSON.parse(localStorage.getItem('prospCfg')||'null');if(c&&c.f)LG.fotos=c.f}catch(e){}}const k=Object.keys(LG.fotos).find(x=>mg(x,n));return k?LG.fotos[k]:''}
+function avatar(){const n=U.perfil==='editor'?S.g:U.nome,a=$('gAv');if(n==='*'){a.textContent='👥';return}const f=fotoDe(n);a.innerHTML=f?'<img src="'+esc(f)+'" alt="" onerror="this.parentNode.textContent=ini(\''+esc(n).replace(/'/g,"")+'\')">':ini(n)}
 function draw0(){const ed=U.perfil==='editor',gs=[...new Set(S.rows.map(r=>r.gestor))].sort(),gsel=$('gSel');
- gsel.hidden=!ed;if(ed){gsel.innerHTML='<option value="*"'+(S.g==='*'?' selected':'')+'>Todos</option>'+gs.map(g=>'<option'+(mg(g,S.g)?' selected':'')+'>'+esc(g)+'</option>').join('');}
- const all=ed&&S.g==='*',m=all?S.rows.slice():S.rows.filter(r=>mg(r.gestor,ed?(gs.find(g=>mg(g,S.g))||S.g):U.nome));
+ $('gW').hidden=false;gsel.disabled=!ed;if(!ed){gsel.innerHTML='<option>'+esc(U.nome)+'</option>'}if(ed){gsel.innerHTML='<option value="*"'+(S.g==='*'?' selected':'')+'>Todos</option>'+gs.map(g=>'<option'+(mg(g,S.g)?' selected':'')+'>'+esc(g)+'</option>').join('');}
+ avatar();const all=ed&&S.g==='*',m=all?S.rows.slice():S.rows.filter(r=>mg(r.gestor,ed?(gs.find(g=>mg(g,S.g))||S.g):U.nome));
  $('tS').classList.toggle('on',S.tab==='semana');$('tT').classList.toggle('on',S.tab==='todos');$('vS').hidden=S.tab!=='semana';$('vT').hidden=S.tab!=='todos';
  $('ed').innerHTML=isAdm()?'<button class="btn" onclick="gerar()">Gerar semana</button><button class="btn" onclick="$(\'fx\').click()">Importar Excel</button><button class="btn" onclick="exportar()">Descarregar Excel</button><input id="fx" type="file" accept=".xlsx" hidden onchange="importar(this)">':'<button class="btn" onclick="exportar()">Descarregar Excel</button>';
  let l;if(S.tab==='semana'){const d0=new Date(S.seg+'T12:00:00'),d4=new Date(add(S.seg,4)+'T12:00:00'),t=new Date(Date.UTC(d0.getFullYear(),d0.getMonth(),d0.getDate()));t.setUTCDate(t.getUTCDate()+4-(t.getUTCDay()||7));const w=Math.ceil(((t-new Date(Date.UTC(t.getUTCFullYear(),0,1)))/864e5+1)/7);
