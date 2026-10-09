@@ -8,9 +8,9 @@
 <script>try{var _t=localStorage.getItem('prospTema');if(_t==='dark'||_t==='light')document.documentElement.setAttribute('data-theme',_t)}catch(e){}</script>
 <title>Prospeção</title>
 <style>
-:root{--p:#008200;--bg:#f4f7f5;--card:#fff;--tx:#0b0c10;--mu:#657786;--bd:#e1e8ed;--bl:#2563eb;--blb:#eff6ff;--gn:#008200;--gnb:#e6f6e6;--rd:#ff2b2b;--rdb:#fff5f5;--am:#b45309;--amb:#fef3e2;--pu:#7c3aed;--pub:#f3eeff}
-@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1412;--card:#1a211e;--tx:#eef2f0;--mu:#9aa8a2;--bd:#2b3632;--blb:#16233f;--gnb:#12301a;--rdb:#3a1616;--amb:#3a2a12;--pub:#2a1f45;color-scheme:dark}}
-:root[data-theme="dark"]{--bg:#0f1412;--card:#1a211e;--tx:#eef2f0;--mu:#9aa8a2;--bd:#2b3632;--blb:#16233f;--gnb:#12301a;--rdb:#3a1616;--amb:#3a2a12;--pub:#2a1f45;color-scheme:dark}
+:root{--p:#008200;--pt:#008200;--bg:#f4f7f5;--card:#fff;--tx:#0b0c10;--mu:#657786;--bd:#e1e8ed;--bl:#2563eb;--blb:#eff6ff;--gn:#008200;--gnb:#e6f6e6;--rd:#ff2b2b;--rdb:#fff5f5;--am:#b45309;--amb:#fef3e2;--pu:#7c3aed;--pub:#f3eeff}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1412;--card:#1a211e;--tx:#eef2f0;--mu:#9aa8a2;--bd:#2b3632;--blb:#16233f;--gnb:#12301a;--rdb:#3a1616;--amb:#3a2a12;--pub:#2a1f45;--gn:#4ade80;--bl:#60a5fa;--am:#fbbf24;--pu:#a78bfa;--rd:#ff6b6b;--pt:#4ade80;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0f1412;--card:#1a211e;--tx:#eef2f0;--mu:#9aa8a2;--bd:#2b3632;--blb:#16233f;--gnb:#12301a;--rdb:#3a1616;--amb:#3a2a12;--pub:#2a1f45;--gn:#4ade80;--bl:#60a5fa;--am:#fbbf24;--pu:#a78bfa;--rd:#ff6b6b;--pt:#4ade80;color-scheme:dark}
 :root[data-theme="light"]{color-scheme:light}
 .tg{padding:0 11px;height:42px;font-size:15px;line-height:1;flex:none}
 *{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--tx);padding:env(safe-area-inset-top) 12px 40px}
@@ -55,7 +55,7 @@ textarea{width:100%;margin-top:10px;border:1px solid var(--bd);border-radius:10p
 .kps{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.kp{background:var(--card);border:1px solid var(--bd);border-radius:8px;padding:6px 8px;text-align:center}.kp span{display:block;font-size:11px;color:var(--mu);margin-bottom:2px}.kp b{font-size:15px;font-weight:700}.kp b.q{color:var(--rd)}.kp b.m{color:var(--am)}.kp b.f{color:var(--bl)}
 .sec{font-size:11px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--mu);margin:0 0 6px}
 .li{display:flex;justify-content:space-between;gap:12px;padding:6px 0;border-bottom:1px solid var(--bd);font-size:12.5px}.li:last-child{border-bottom:0}.li span{color:var(--mu);flex:none}.li b{text-align:right;font-weight:600;word-break:break-word}.li a{color:var(--bl);text-decoration:none}
-.ac3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px}.ac3 .btn{padding:10px 6px;text-align:center;font-size:12.5px}.btn.bl{background:var(--blb);color:var(--bl)}.btn.gs{background:var(--gn);border-color:var(--gn);color:#fff}
+.ac3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px}.ac3 .btn{padding:10px 6px;text-align:center;font-size:12.5px}.btn.bl{background:var(--blb);color:var(--bl)}.btn.gs{background:var(--p);border-color:var(--p);color:#fff}
 .sap{display:inline-block;margin-top:4px;font-size:11.5px;font-weight:700;color:var(--mu);background:var(--bg);border-radius:6px;padding:2px 7px}
 .g2c{display:grid;grid-template-columns:1fr 1fr;gap:6px}
 .bar{display:flex;align-items:center;gap:10px;margin:6px 0;font-size:12.5px}.bar span{width:56px;color:var(--mu);flex:none;font-weight:600}.bar i{display:block;height:10px;border-radius:5px;background:var(--bl);flex:none}.bar b{margin-left:auto;font-weight:700}
@@ -110,7 +110,7 @@ textarea{width:100%;margin-top:10px;border:1px solid var(--bd);border-radius:10p
 .ip{position:fixed;inset:0;z-index:999999;background:rgba(11,12,16,.6);display:none;align-items:center;justify-content:center;padding:20px}.ip.show{display:flex}
 .ipb{width:min(100%,400px);background:var(--card);border:1px solid var(--bd);border-radius:20px;padding:24px;text-align:center}.ipi{width:62px;height:62px;margin:0 auto 14px;border-radius:18px;overflow:hidden}.ipi img{width:100%;height:100%;display:block}
 .ipb h3{font-size:19px;font-weight:800;margin:0 0 8px}.ipb p{font-size:13px;line-height:1.55;color:var(--mu);margin:0 auto 16px;max-width:300px}
-.ips{text-align:left;background:var(--bg);border:1px solid var(--bd);border-radius:12px;padding:12px;margin-bottom:14px}.ips ol{margin:0;padding-left:18px;font-size:12.5px;line-height:1.7;color:var(--mu)}.ips b{color:var(--p)}
+.ips{text-align:left;background:var(--bg);border:1px solid var(--bd);border-radius:12px;padding:12px;margin-bottom:14px}.ips ol{margin:0;padding-left:18px;font-size:12.5px;line-height:1.7;color:var(--mu)}.ips b{color:var(--pt)}
 .ipa{display:flex;flex-direction:column;gap:9px}.ipa button{width:100%;border-radius:100px;padding:12px 16px;font-size:13px;font-weight:700;cursor:pointer}.ipy{border:0;background:var(--p);color:#fff}.ipn{border:1px solid var(--bd);background:var(--card);color:var(--mu)}
 
 .gw{position:relative;display:flex;align-items:center;max-width:62%;min-width:0}
@@ -594,7 +594,7 @@ function cardView(r){
  const lit=[['Barril',num(d.prevBarril)],['Garrafa',num(d.prevGarrafa)],['Luso',num(d.prevLuso)]].filter(x=>x[1]),mx=Math.max.apply(null,lit.map(x=>x[1]).concat([1]));
  const li=(l,v,h)=>v?'<div class="li"><span>'+l+'</span><b>'+(h||esc(v))+'</b></div>':'';
  const tel=d.contacto&&fv('contacto',d.contacto),seta='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex:none;color:var(--mu)"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
- const cerv=(d.marcaAtual||d.marcaConquistar)?'<div class="sec">🍺 Transição de Cerveja</div><div class="sw"><div><span>Atual</span><b>'+esc(d.marcaAtual||'—')+'</b></div>'+seta+'<div><span>A conquistar</span><b style="color:var(--p)">'+esc(d.marcaConquistar||'—')+'</b></div></div>':'';
+ const cerv=(d.marcaAtual||d.marcaConquistar)?'<div class="sec">🍺 Transição de Cerveja</div><div class="sw"><div><span>Atual</span><b>'+esc(d.marcaAtual||'—')+'</b></div>'+seta+'<div><span>A conquistar</span><b style="color:var(--pt)">'+esc(d.marcaConquistar||'—')+'</b></div></div>':'';
  
  const hist=getHistorico(r);
  const ult=hist[0];
