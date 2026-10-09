@@ -23,7 +23,7 @@
 .ct{display:flex;justify-content:space-between;gap:8px;cursor:pointer}.nm{font-weight:700;font-size:16px}.sb{color:var(--mu);font-size:13px;margin-top:2px}
 .bg{display:inline-block;font-size:11.5px;font-weight:700;border-radius:999px;padding:3px 9px;white-space:nowrap;background:var(--bd);color:var(--mu)}
 .t-Prospeção{background:var(--blb);color:var(--bl)}.t-Reconquista{background:var(--amb);color:var(--am)}.t-Execução{background:var(--pub);color:var(--pu)}
-.e-feita,.e-conquistado{background:var(--gnb);color:var(--gn)}.e-falhada,.e-novavisita{background:var(--blb);color:var(--bl)}.e-recusou{background:var(--rdb);color:var(--rd)}.e-planeada{background:var(--bd);color:var(--tx)}
+.e-feita,.e-conquistado{background:var(--gnb);color:var(--gn)}.e-falhada,.e-novavisita{background:var(--blb);color:var(--bl)}.e-recusou{background:var(--rdb);color:var(--rd)}.e-arquivado{background:var(--bd);color:var(--mu)}.e-planeada{background:var(--bd);color:var(--tx)}
 .col{display:flex;flex-direction:column;align-items:flex-end;gap:4px}
 .dt{display:none;margin-top:12px;border-top:1px solid var(--bd);padding-top:12px}.c.open .dt{display:block}
 .g{display:grid;grid-template-columns:1fr 1fr;gap:6px 12px;font-size:13px}.g span{color:var(--mu);display:block}.g b{font-weight:600;word-break:break-word}
@@ -80,16 +80,17 @@ textarea{width:100%;margin-top:10px;border:1px solid var(--bd);border-radius:10p
 .hist-data{font-weight:700;color:var(--tx)}
 .hist-notas{margin:3px 0 0;color:var(--mu);font-size:11.5px;line-height:1.3;word-break:break-word}
 
-/* Popup de Data para Nova Visita */
+/* Popups Modais (Nova Visita e Arquivar) */
 .nv-overlay{position:fixed;inset:0;z-index:999999;background:rgba(11,12,16,.6);display:flex;align-items:center;justify-content:center;padding:16px}
 .nv-overlay[hidden]{display:none!important}
 .nv-card{background:var(--card);border:1px solid var(--bd);border-radius:18px;padding:20px;width:100%;max-width:340px;box-shadow:0 8px 30px rgba(0,0,0,.25)}
 .nv-card h3{margin:0 0 4px;font-size:17px;font-weight:800}
 .nv-card p{margin:0 0 14px;font-size:13px;color:var(--mu)}
-.nv-card input[type="date"]{width:100%;padding:11px;border:1px solid var(--bd);border-radius:10px;background:var(--bg);color:var(--tx);font-size:14px;box-sizing:border-box}
+.nv-card input[type="date"], .nv-card textarea{width:100%;padding:11px;border:1px solid var(--bd);border-radius:10px;background:var(--bg);color:var(--tx);font-size:14px;box-sizing:border-box}
 .nv-btns{display:flex;flex-direction:column;gap:8px;margin-top:14px}
 .nv-btns-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 
+/* TELEMÓVEL: Altura mais contida e proporções ajustadas */
 @media(max-width:1023px){
  .fil{margin:6px 0 4px}
  .fil input{flex:1 1 100%;min-width:0}
@@ -97,33 +98,33 @@ textarea{width:100%;margin-top:10px;border:1px solid var(--bd);border-radius:10p
  #dp{display:none}
 
  .c.open{
-   max-height:82vh;
-   max-height:82dvh;
+   max-height:74vh;
+   max-height:74dvh;
    overflow-y:auto;
    overflow-x:hidden;
    -webkit-overflow-scrolling:touch;
    overscroll-behavior-y:contain;
-   padding:12px 10px;
+   padding:10px 8px;
  }
- .c.open .ct{padding:4px 0}
- .c.open .nm{font-size:16px}
- .c.open .sb{font-size:13px}
- .c.open .sec{margin:12px 0 6px;font-size:11px}
- .c.open .g2c{gap:8px}
- .c.open .kp{padding:8px 6px!important;border-radius:10px}
- .c.open .kp span{font-size:11px!important;line-height:1.2;margin-bottom:3px}
- .c.open .kp b{font-size:15px!important;line-height:1.2}
- .c.open .li{padding:6px 0;font-size:13px}
- .c.open .bar{margin:5px 0;font-size:12px}
- .c.open .sw{padding:8px 10px}
- .c.open .mi{padding:6px 4px}
- .c.open .mi b{font-size:16px}
- .c.open .dfoot{margin-top:10px;padding-top:10px;gap:8px}
- .c.open .dfoot textarea{height:46px;min-height:46px;font-size:13px}
- .c.open .dfoot .ac3{gap:6px}
- .c.open .dfoot .ac3 .btn{padding:11px 4px;font-size:12px;font-weight:700}
- .c.open .dfoot .ac{gap:6px}
- .c.open .dfoot .ac .btn{padding:9px 12px;font-size:12px}
+ .c.open .ct{padding:2px 0}
+ .c.open .nm{font-size:15px}
+ .c.open .sb{font-size:12px}
+ .c.open .sec{margin:8px 0 4px;font-size:10.5px}
+ .c.open .g2c{gap:6px}
+ .c.open .kp{padding:6px 4px!important;border-radius:8px}
+ .c.open .kp span{font-size:10px!important;line-height:1.15;margin-bottom:2px}
+ .c.open .kp b{font-size:14px!important;line-height:1.15}
+ .c.open .li{padding:4px 0;font-size:12px}
+ .c.open .bar{margin:3px 0;font-size:11.5px}
+ .c.open .sw{padding:6px 8px;border-radius:8px}
+ .c.open .mi{padding:5px 3px}
+ .c.open .mi b{font-size:15px}
+ .c.open .dfoot{margin-top:6px;padding-top:6px;gap:6px}
+ .c.open .dfoot textarea{height:36px;min-height:36px;font-size:12.5px;padding:6px}
+ .c.open .dfoot .ac3{gap:5px;margin-top:6px}
+ .c.open .dfoot .ac3 .btn{padding:9px 3px;font-size:11.5px;font-weight:700}
+ .c.open .dfoot .ac{gap:5px;margin-top:6px}
+ .c.open .dfoot .ac .btn{padding:7px 10px;font-size:11.5px}
 }
 
 /* VERSÃO PC: Equilibrada */
@@ -174,11 +175,11 @@ textarea{width:100%;margin-top:10px;border:1px solid var(--bd);border-radius:10p
 }
 
 /* Modal Popup de ecrã inteiro no telemóvel */
-.mob-popup{position:fixed;inset:0;z-index:90000;background:var(--bg);padding:12px;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;box-sizing:border-box}
+.mob-popup{position:fixed;inset:0;z-index:90000;background:var(--bg);padding:10px;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;box-sizing:border-box}
 .mob-popup[hidden]{display:none!important}
-.mob-popup-top{position:sticky;top:0;z-index:2;background:var(--bg);padding:4px 0 10px}
-.mob-popup-back{width:100%;display:flex;align-items:center;justify-content:flex-start;gap:8px;border:1px solid var(--bd);border-radius:12px;padding:12px 14px;background:var(--card);color:var(--tx);font-size:14px;font-weight:700;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.06)}
-.mob-popup-content .c.open{max-height:none!important;overflow:visible!important;padding:14px}
+.mob-popup-top{position:sticky;top:0;z-index:2;background:var(--bg);padding:2px 0 8px}
+.mob-popup-back{width:100%;display:flex;align-items:center;justify-content:flex-start;gap:8px;border:1px solid var(--bd);border-radius:10px;padding:10px 12px;background:var(--card);color:var(--tx);font-size:13.5px;font-weight:700;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.mob-popup-content .c.open{max-height:none!important;overflow:visible!important;padding:12px}
 .mob-popup-content .c.open .dt{display:block}
 @media(min-width:1024px){.mob-popup{display:none!important}}
 </style></head><body><div class="ip" id="ipOv" role="dialog" aria-modal="true" aria-label="Instalar app"><div class="ipb"><div class="ipi"><svg viewBox="0 0 62 62" width="62" height="62"><rect width="62" height="62" rx="14" fill="#008200"/><path d="M16 32l10 10 20-20" stroke="white" stroke-width="5" fill="none" stroke-linecap="round"/></svg></div>
@@ -203,6 +204,19 @@ textarea{width:100%;margin-top:10px;border:1px solid var(--bd);border-radius:10p
   </div>
 </div>
 
+<!-- Modal Popup para Arquivar -->
+<div class="nv-overlay" id="arqOv" hidden>
+  <div class="nv-card">
+    <h3>Arquivar Estabelecimento</h3>
+    <p id="arqNome">Indica o motivo do arquivamento:</p>
+    <textarea id="arqMotivo" rows="3" placeholder="Ex: Fechou, recusou definitivamente, etc..."></textarea>
+    <div class="nv-btns">
+      <button type="button" class="btn rd" onclick="confirmarArquivar()">Confirmar Arquivamento</button>
+      <button type="button" class="btn" onclick="fecharArqPopup()">Cancelar</button>
+    </div>
+  </div>
+</div>
+
 <div class="w">
 <div class="lock-overlay" id="lg" hidden><div class="lock-box">
 <div class="lock-passo" id="lgPassoG"><p class="lock-titulo">Quem és tu? Toca na tua foto</p><div class="lock-gestores" id="lgGest"></div><div class="lock-erro-msg" id="lgErroG" style="margin-top:14px"></div></div>
@@ -213,7 +227,7 @@ textarea{width:100%;margin-top:10px;border:1px solid var(--bd);border-radius:10p
 <div class="top"><button class="btn" id="bV" onclick="voltar()" hidden>← Picos</button><h1 id="tt">Prospeção</h1><button class="btn" id="bI" onclick="mostrarInstallPrompt(true)" hidden>📲 Instalar app</button><span class="gw" id="gW" hidden><span class="gav" id="gAv"></span><select id="gSel" class="btn" onchange="S.g=this.value;draw()"></select></span></div>
 <div class="tabs"><button class="btn on" id="tT" onclick="tab('todos')">Lista</button><button class="btn" id="tS" onclick="tab('semana')">Semana</button></div>
 <div id="vS" hidden><div class="nav"><button class="btn" onclick="sem(-7)">‹</button><b id="sT"></b><button class="btn" onclick="sem(7)">›</button></div><div class="dias" id="ds"></div></div>
-<div id="vT"><div class="fil"><input id="q" placeholder="Procurar nome…" oninput="S.q=this.value;S.so='';S.n=50;draw()"><select id="ft" onchange="S.t=this.value;S.n=50;draw()"><option value="">Todos os tipos</option><option>Prospeção</option><option>Reconquista</option><option>Execução Barril</option></select><select id="fc" onchange="S.c=this.value;S.n=50;draw()"></select><select id="fe" onchange="S.e=this.value;S.n=50;draw()"><option value="abertos">Por conquistar</option><option value="">Todos</option><option value="conquistado">Conquistados</option><option value="recusou">Recusaram</option><option value="novavisita">Nova visita</option></select></div></div>
+<div id="vT"><div class="fil"><input id="q" placeholder="Procurar nome…" oninput="S.q=this.value;S.so='';S.n=50;draw()"><select id="ft" onchange="S.t=this.value;S.n=50;draw()"><option value="">Todos os tipos</option><option>Prospeção</option><option>Reconquista</option><option>Execução Barril</option></select><select id="fc" onchange="S.c=this.value;S.n=50;draw()"></select><select id="fe" onchange="S.e=this.value;S.n=50;draw()"><option value="abertos">Por conquistar</option><option value="">Todos</option><option value="conquistado">Conquistados</option><option value="recusou">Recusaram</option><option value="novavisita">Nova visita</option><option value="arquivado">Arquivados</option></select></div></div>
 <div class="ed" id="ed"></div><div id="main"><div id="ls"></div><div id="dp"></div></div></div></div>
 <script>
 const API="https://script.google.com/macros/s/AKfycbwJoWQTZASCbn_nQXDNA3plu-kUa4qwnx24T8Hx2nzjJ8q4jlDFw8HLzd6yQycQlEA/exec";
@@ -261,7 +275,7 @@ async function lgProc(){const p=LG.buf,m=LG.modo,n=LG.nome;if(p.length!==4||LG.o
  if(r&&r.ok){lgOk(n,p,r.perfil);return}if(r&&r.semPin){LG.temPin=false;lgErro(r.erro,'criar1');return}lgErro((r&&r.erro)||'PIN incorreto.')}
 async function iniciar(id){if(!EMB)setTimeout(()=>window.mostrarInstallPrompt&&window.mostrarInstallPrompt(),900);$('lg').hidden=true;$('ap').hidden=false;$('bV').hidden=!(EMB||Q.get('voltar'));S.seg=segDe(new Date());const h=iso(new Date());S.dia=h<=add(S.seg,4)?h:S.seg;S.g=U.nome;
  await carregar();const a=id||Q.get('id');if(a)abrirId(a)}
-async function buscar(){try{const r=await fetch(API+'?tipo=prospeccao&t='+Date.now()),d=await r.json();if(d&&d.ok&&d.rows){S.rows=d.rows;try{localStorage.setItem('prospRows',JSON.stringify(d.rows))}catch(e){}return true}}catch(e){}
+async function buscar(){try{const r=await fetch(API+'?tipo=prospeccao&t='+Date.now()),d=await r.json();if(d&&d.ok&&d.rows){S.rows=d.rows;try{localStorage.setItem('prospRows',JSON.stringify(d.rows))}catch(e){}return true}[cite: 1]}catch(e){}
  const d=await post({action:'prospeccao_ler'});if(d&&d.ok){S.rows=d.rows||[];return true}return false}
 async function carregar(){if(S.rows.length)draw();else $('ls').innerHTML='<div class="vz">A carregar…</div>';const ok=await buscar();if(!ok&&!S.rows.length){$('ls').innerHTML='<div class="vz">Não foi possível carregar. Verifica a ligação.</div>';return}draw()}
 function abrirId(id){const r=S.rows.find(x=>x.id===id);if(!r)return;if(U.perfil==='editor')S.g=r.gestor;S.tab='todos';S.so=id;S.o=id;S.q='';S.t='';S.c='';draw()}
@@ -317,19 +331,42 @@ function confirmarNovaVisita(auto){
   marcar(id,'novavisita',dNova);
 }
 
+/* Gestão de Popup para Arquivar */
+let ARQ_PENDENTE=null;
+function abrirArqPopup(id){
+  const r=S.rows.find(x=>x.id===id);
+  ARQ_PENDENTE=id;
+  $('arqNome').textContent=r?'Estabelecimento: '+r.nome:'Indica o motivo do arquivamento:';
+  $('arqMotivo').value=r&&r.detalhe&&r.detalhe.motivo?r.detalhe.motivo:'';
+  $('arqOv').hidden=false;
+}
+function fecharArqPopup(){
+  $('arqOv').hidden=true;
+  ARQ_PENDENTE=null;
+}
+function confirmarArquivar(){
+  if(!ARQ_PENDENTE)return;
+  const id=ARQ_PENDENTE;
+  const motivo=$('arqMotivo').value.trim();
+  fecharArqPopup();
+  marcar(id,'arquivado',undefined,motivo);
+}
+
 let SAVING=false;
 function toast(t,err){let e=$('toast');if(!e){e=document.createElement('div');e.id='toast';e.style.cssText='position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:100000;max-width:90%;padding:10px 16px;border-radius:12px;font-size:13px;font-weight:700;color:#fff;box-shadow:0 4px 14px rgba(0,0,0,.25);text-align:center';document.body.appendChild(e)}e.style.background=err?'#dc2626':'#008200';e.textContent=t;e.style.display='block';clearTimeout(e._t);e._t=setTimeout(()=>{e.style.display='none'},err?7000:2200)}
-async function marcar(id,e,dataPlaneadaNova){if(SAVING)return;SAVING=true;const bs=document.querySelectorAll('.ac3 .btn,.ac .btn');bs.forEach(b=>b.disabled=true);const ta=$('n_'+id);toast('A guardar…');
- try{const d=await post({action:'prospeccao_atualizar',id:id,estado:e,notas:ta?ta.value:undefined,dataPlaneada:dataPlaneadaNova,pinEditor:U.pin});
+async function marcar(id,e,dataPlaneadaNova,motivoExtra){if(SAVING)return;SAVING=true;const bs=document.querySelectorAll('.ac3 .btn,.ac .btn');bs.forEach(b=>b.disabled=true);const ta=$('n_'+id);toast('A guardar…');
+ try{const d=await post({action:'prospeccao_atualizar',id:id,estado:e,notas:ta?ta.value:undefined,dataPlaneada:dataPlaneadaNova,motivo:motivoExtra,pinEditor:U.pin});
   if(!d||!d.ok){toast('Não guardou: '+((d&&d.erro)||'sem resposta do servidor'),true);return}
   const i=S.rows.findIndex(r=>r.id===id);
   if(i>-1){
     const rowAnt=S.rows[i];
     const nt=ta?ta.value:(rowAnt.notas||'');
     const hList=(rowAnt.historicoVisitas||[]).slice();
-    hList.unshift({data:iso(new Date()),estado:e,notas:nt});
+    hList.unshift({data:iso(new Date()),estado:e,notas:motivoExtra?(nt?(nt+' | Motivo: '+motivoExtra):('Motivo: '+motivoExtra)):nt});
     const dp=dataPlaneadaNova||rowAnt.dataPlaneada;
-    S.rows[i]=(d.row&&d.row.id)?Object.assign({},d.row,{dataPlaneada:d.row.dataPlaneada||dp,historicoVisitas:d.row.historicoVisitas||hList}):Object.assign({},rowAnt,{estado:e,notas:nt,dataPlaneada:dp,historicoVisitas:hList});
+    const det=Object.assign({},rowAnt.detalhe||{});
+    if(motivoExtra)det.motivo=motivoExtra;
+    S.rows[i]=(d.row&&d.row.id)?Object.assign({},d.row,{dataPlaneada:d.row.dataPlaneada||dp,historicoVisitas:d.row.historicoVisitas||hList}):Object.assign({},rowAnt,{estado:e,notas:nt,dataPlaneada:dp,detalhe:det,historicoVisitas:hList});
   }
   toast('Guardado: '+(e==='novavisita'?'nova visita':e));draw()}
  catch(x){toast('Erro: '+(x&&x.message||x),true)}
@@ -367,7 +404,7 @@ function cardView(r){const o=S.o===r.id,tp=r.tipoVisita==='Execução Barril'?'E
  cerv+mat(r)+'</div><div class="dc2">'+(dados?'<div class="sec">Dados</div><div class="ls">'+dados+'</div>':'')+'</div><div class="dfoot">'+
  '<textarea id="n_'+r.id+'" rows="2" placeholder="Notas da visita">'+esc(r.notas||'')+'</textarea>'+
  '<div class="ac3"><button type="button" class="btn gs" onclick="marcar('+id+',\'conquistado\')">Conquistado</button><button type="button" class="btn bl" onclick="abrirNvPopup('+id+')">Nova visita</button><button type="button" class="btn am" onclick="marcar('+id+',\'recusou\')">Recusou</button></div>'+
- '<div class="ac"><a class="btn" href="'+mp+'" target="_blank" rel="noopener">📍 Maps</a>'+(r.estado!=='planeada'?'<button type="button" class="btn" onclick="marcar('+id+',\'planeada\')">Repor</button>':'')+(U.perfil==='editor'?'<button type="button" class="btn" onclick="editar('+id+')">✎ Editar</button>':'')+'</div></div></div></div>'}
+ '<div class="ac"><a class="btn" href="'+mp+'" target="_blank" rel="noopener">📍 Maps</a>'+(r.estado!=='planeada'?'<button type="button" class="btn" onclick="marcar('+id+',\'planeada\')">Repor</button>':'')+'<button type="button" class="btn" onclick="abrirArqPopup('+id+')">📁 Arquivar</button>'+(U.perfil==='editor'?'<button type="button" class="btn" onclick="editar('+id+')">✎ Editar</button>':'')+'</div></div></div></div>'}
 const EDITF=['Identificação',['nome','Nome','t','f'],['idSAP','Nº SAP','n'],['localidade','Localidade','t'],['gestor','Gestor','s'],['tipoVisita','Tipo de visita','s:Prospeção|Reconquista|Execução Barril'],['orla','Zona orla','s:Sim|Não'],['previsao','Previsão de conquista','s:|Quente|Morno|Frio'],
  'Cerveja',['marcaAtual','Marca atual','t'],['marcaConquistar','Marca a conquistar','t'],
  'Litragem e desconto',['prevBarril','Barril (L)','n'],['prevGarrafa','Garrafa (L)','n'],['prevLuso','Luso (L)','n'],['descontoBarril','Desconto barril (%)','p'],
@@ -402,7 +439,7 @@ function draw0(){const ed=U.perfil==='editor',gs=[...new Set(S.rows.map(r=>r.ges
   $('sT').textContent='Semana '+w+' · '+d0.getDate()+'–'+d4.getDate()+'/'+(d4.getMonth()+1);
   $('ds').innerHTML=[0,1,2,3,4].map(i=>{const d=add(S.seg,i);return '<button class="dia'+(d===S.dia?' on':'')+'" onclick="S.dia=\''+d+'\';S.o=\'\';draw()">'+['Seg','Ter','Qua','Qui','Sex'][i]+'<small>'+m.filter(r=>r.dataPlaneada===d).length+' visitas</small></button>'}).join('');
   l=m.filter(r=>r.dataPlaneada===S.dia);$('ls').innerHTML=l.length?l.map(cl).join(''):'<div class="vz">Sem visitas neste dia.'+(m.some(r=>r.dataPlaneada>=S.seg&&r.dataPlaneada<=add(S.seg,4))?'':' A semana ainda não foi gerada.')+'</div>'}
- else{const fl=(r,k)=>(k==='t'||!S.t||r.tipoVisita===S.t)&&(k==='c'||!S.c||r.localidade===S.c)&&(S.e==='abertos'?r.estado!=='conquistado':(!S.e||r.estado===S.e))&&(!S.q||nz(r.nome).includes(nz(S.q))),ORD=['Prospeção','Reconquista','Execução Barril'];let cs,ts;
+ else{const fl=(r,k)=>(k==='t'||!S.t||r.tipoVisita===S.t)&&(k==='c'||!S.c||r.localidade===S.c)&&(S.e==='abertos'?(r.estado!=='conquistado'&&r.estado!=='arquivado'):(!S.e||r.estado===S.e))&&(!S.q||nz(r.nome).includes(nz(S.q))),ORD=['Prospeção','Reconquista','Execução Barril'];let cs,ts;
   for(let k=0;k<2;k++){ts=[...new Set(m.filter(r=>fl(r,'t')).map(r=>r.tipoVisita))].sort((x,y)=>(ORD.indexOf(x)+1||99)-(ORD.indexOf(y)+1||99));if(S.t&&ts.indexOf(S.t)<0)S.t='';
    cs=[...new Set(m.filter(r=>fl(r,'c')).map(r=>r.localidade))].sort((x,y)=>x.localeCompare(y,'pt'));if(S.c&&cs.indexOf(S.c)<0)S.c=''}
   $('ft').innerHTML='<option value="">Todos os tipos</option>'+ts.map(t=>'<option'+(t===S.t?' selected':'')+'>'+esc(t)+'</option>').join('');
