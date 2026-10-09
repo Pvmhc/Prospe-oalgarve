@@ -149,7 +149,7 @@ textarea{width:100%;margin-top:10px;border:1px solid var(--bd);border-radius:10p
  #dp .sb{font-size:12px;margin-top:2px}
  #dp .sap{font-size:11px;padding:2px 6px;margin-top:4px}
  #dp .bg{font-size:11px;padding:2px 8px}
- #dp .dt{margin-top:6px;padding-top:6px;display:grid;grid-template-columns:0.95fr 1.05fr;gap:0 18px;align-items:start}
+ #dp .dt{margin-top:6px;padding-top:6px;display:grid;grid-template-columns:1fr 1fr;gap:0 18px;align-items:start}
  
  #dp .dfoot{grid-column:1/-1;margin-top:7px;border-top:1px solid var(--bd);padding-top:7px;display:grid;grid-template-columns:minmax(0,1fr);gap:6px;align-items:stretch}
  #dp .dfoot textarea{margin:0;grid-column:1/-1;height:34px;font-size:12px;padding:6px 8px;resize:none}
@@ -575,20 +575,20 @@ function cardView(r){
 
  return '<div class="c'+(o?' open':'')+'"><div class="ct" onclick="abrir('+id+')"><div><div class="nm">'+esc(r.nome)+'</div>'+(d.idSAP?'<span class="sap">Nº SAP '+esc(fv('idSAP',d.idSAP))+'</span>':'')+'<div class="sb">'+esc(r.localidade)+(U.perfil==='editor'&&S.g==='*'?' · '+esc(r.gestor):'')+(r.orla==='Sim'?' · 🌊 orla':'')+'</div></div><div class="col"><span class="bg t-'+tp+'">'+tp+'</span><span class="bg e-'+r.estado+'">'+(r.estado==='novavisita'?'nova visita':r.estado)+'</span></div></div>'+
  '<div class="dt">'+bannerProposta+
- /* Coluna 1 (Esquerda): Ficha do Estabelecimento */
+ /* Coluna 1 (Esquerda): Ficha do Estabelecimento + Potencial & Negócio */
  '<div class="dc1">'+
    '<div class="box-painel">'+
      '<div class="sec">Ficha do Estabelecimento</div>'+
      '<div class="ls">'+dados+'</div>'+
    '</div>'+
- '</div>'+
- /* Coluna 2 (Direita): Potencial, Litragem, Transição de Marca e Material */
- '<div class="dc2">'+
    '<div class="box-painel">'+
      '<div class="sec">Potencial & Negócio</div>'+
      '<div class="g2c"><div class="kp"><span>Previsão de conquista</span><b class="'+pc+'">'+(r.previsao?esc(r.previsao):'—')+'</b></div><div class="kp"><span>Desconto barril</span><b>'+(d.descontoBarril?esc(fv('descontoBarril',d.descontoBarril)):'—')+'</b></div></div>'+
      litragemBloco+
    '</div>'+
+ '</div>'+
+ /* Coluna 2 (Direita): Transição de Marca & Material */
+ '<div class="dc2">'+
    '<div class="box-painel">'+
      cerv+mat(r)+
    '</div>'+
@@ -596,7 +596,7 @@ function cardView(r){
  '<div class="dfoot">'+
  '<textarea id="n_'+r.id+'" rows="2" placeholder="Notas da visita">'+esc(r.notas||'')+'</textarea>'+
  '<div class="ac3"><button type="button" class="btn gs" onclick="marcar('+id+',\'conquistado\')">Conquistado</button><button type="button" class="btn bl" onclick="abrirNvPopup('+id+')">Nova visita</button><button type="button" class="btn am" onclick="marcar('+id+',\'recusou\')">Recusou</button></div>'+
- '<div class="ac"><a class="btn" href="'+mp+'" target="_blank" rel="noopener">📍 Maps</a>'+(r.estado!=='planeada'?'<button type="button" class="btn" onclick="marcar('+id+',\'planeada\')">Repor</button>':'')+'<button type="button" class="btn" onclick="abrirArqPopup('+id+')">📁 Arquivar</button>'+(U.perfil==='editor'?'<button type="button" class="btn" onclick="editar('+id+')">✎ Editar</button>':'')+'</div></div></div></div>'}
+ '<div class="ac"><a class="btn" href="'+mp+'" target="_blank" rel="noopener">📍 Maps</a>'+(r.estado!=='planeada'?'<button type="button" class="btn" onclick="marcar('+id+',\'planeada\')">Repor</button>':'')+'<button type="button" class="btn" onclick="abrirArqPopup('+id+')">📁 Arquivar</button>'+(U.perfil==='editor'?'<button type="button" class="btn" onclick="editar('+id+')">✎ Editar</button>':'')+'</div></div></div></div>';}
 
 const EDITF=['Identificação',['nome','Nome','t','f'],['idSAP','Nº SAP','n'],['localidade','Localidade','t'],['gestor','Gestor','s'],['tipoVisita','Tipo de visita','s:Prospeção|Reconquista|Execução Barril'],['orla','Zona orla','s:Sim|Não'],['previsao','Previsão de conquista','s:|Quente|Morno|Frio'],
  'Cerveja',['marcaAtual','Marca atual','t'],['marcaConquistar','Marca a conquistar','t'],
