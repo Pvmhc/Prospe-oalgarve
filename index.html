@@ -46,6 +46,12 @@ textarea{width:100%;margin-top:10px;border:1px solid var(--bd);border-radius:10p
 .kps{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.kp{background:var(--bg);border-radius:12px;padding:10px 6px;text-align:center}.kp span{display:block;font-size:11px;color:var(--mu);margin-bottom:4px}.kp b{font-size:17px;font-weight:700}.kp b.q{color:var(--rd)}.kp b.m{color:var(--am)}.kp b.f{color:var(--bl)}
 .sec{font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--mu);margin:16px 0 4px}.li{display:flex;justify-content:space-between;gap:16px;padding:8px 0;border-bottom:1px solid var(--bd);font-size:13px}.li:last-child{border-bottom:0}.li span{color:var(--mu);flex:none}.li b{text-align:right;font-weight:600;word-break:break-word}.li a{color:var(--bl);text-decoration:none}
 .mt{margin:0;padding:0;border:0}.ac3{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:10px}.ac3 .btn{padding:12px 4px;text-align:center}.btn.bl{background:var(--blb);color:var(--bl)}.btn.gs{background:var(--gn);border-color:var(--gn);color:#fff}
+.sap{display:inline-block;margin-top:6px;font-size:12px;font-weight:700;color:var(--mu);background:var(--bg);border-radius:6px;padding:3px 8px}
+.g2c{display:grid;grid-template-columns:1fr 1fr;gap:8px}.sec{margin:18px 0 8px}.mg{grid-template-columns:repeat(auto-fit,minmax(72px,1fr))}
+.bar{display:flex;align-items:center;gap:10px;margin:8px 0;font-size:13px}.bar span{width:58px;color:var(--mu);flex:none}.bar i{display:block;height:10px;border-radius:5px;background:var(--bl);flex:none}.bar b{margin-left:auto;font-weight:700}
+.sw{display:flex;align-items:center;gap:10px;background:var(--bg);border-radius:12px;padding:12px}.sw div{flex:1}.sw span{display:block;font-size:11px;color:var(--mu)}.sw b{font-size:15px;font-weight:800}
+.ef{display:grid;grid-template-columns:1fr 1fr;gap:8px 10px}.ef .sec,.ef .full{grid-column:1/-1}.ef .sec{margin:12px 0 0}.ei label{display:block;font-size:11px;color:var(--mu);margin:0 0 4px}
+.ei input,.ei select{width:100%;border:1px solid var(--bd);background:var(--card);color:var(--tx);border-radius:10px;padding:10px;font-size:14px}
 </style></head><body><div class="w">
 <div class="lock-overlay" id="lg" hidden><div class="lock-box">
 <div class="lock-passo" id="lgPassoG"><p class="lock-titulo">Quem és tu? Toca na tua foto</p><div class="lock-gestores" id="lgGest"></div><div class="lock-erro-msg" id="lgErroG" style="margin-top:14px"></div></div>
@@ -61,7 +67,7 @@ textarea{width:100%;margin-top:10px;border:1px solid var(--bd);border-radius:10p
 <script>
 const API="https://script.google.com/macros/s/AKfycbwJoWQTZASCbn_nQXDNA3plu-kUa4qwnx24T8Hx2nzjJ8q4jlDFw8HLzd6yQycQlEA/exec";
 const Q=new URLSearchParams(location.search),EMB=Q.get('embed')==='1',$=i=>document.getElementById(i);
-const U={nome:'',perfil:'',pin:''},S={rows:[],tab:'todos',e:'abertos',seg:'',dia:'',q:'',t:'',c:'',g:'',o:'',so:'',n:50};
+const U={nome:'',perfil:'',pin:''},S={rows:[],tab:'todos',ed:'',e:'abertos',seg:'',dia:'',q:'',t:'',c:'',g:'',o:'',so:'',n:50};
 const iso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 const add=(s,n)=>{const d=new Date(s+'T12:00:00');d.setDate(d.getDate()+n);return iso(d)};
 const segDe=d=>{d=new Date(d);d.setDate(d.getDate()-((d.getDay()+6)%7));return iso(d)};
@@ -115,20 +121,41 @@ function fv(k,v){v=String(v);if(/^\d+\.0$/.test(v))v=v.slice(0,-2);if(/^prev/.te
 function mat(r){const d=r.detalhe||{},T=[['matConjuntos','Conjuntos'],['matChapeus','Chapéus'],['matFrio','Fridge'],['matMesasAltas','Mesas altas'],['matBidon','Bidon'],['matJardim','Jardim vertical']].filter(x=>d[x[0]]);
  const tx=[['matMarca','Marca'],['matCor','Cor'],['matOutros','Outros']].filter(x=>d[x[0]]).map(x=>x[1]+': '+esc(d[x[0]])).join(' · ');
  if(!T.length&&!tx)return '';return '<div class="sec">Material necessário para conquista</div><div class="mt">'+(T.length?'<div class="mg">'+T.map(x=>'<div class="mi"><b>'+esc(fv(x[0],d[x[0]]))+'</b><span>'+x[1]+'</span></div>').join('')+'</div>':'')+(tx?'<div class="mx">'+tx+'</div>':'')+'</div>'}
-function card(r){const o=S.o===r.id,tp=r.tipoVisita==='Execução Barril'?'Execução':r.tipoVisita,d=r.detalhe||{},mp='https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(r.nome+' '+r.localidade+' Portugal');
- const pc={quente:'q',morno:'m',frio:'f'}[nz(r.previsao)]||'',id="'"+r.id+"'";
- const kp=(l,v,c)=>'<div class="kp"><span>'+l+'</span><b class="'+(c||'')+'">'+(v?esc(v):'—')+'</b></div>';
+function cardView(r){const o=S.o===r.id,tp=r.tipoVisita==='Execução Barril'?'Execução':r.tipoVisita,d=r.detalhe||{},mp='https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(r.nome+' '+r.localidade+' Portugal'),id="'"+r.id+"'";
+ const pc={quente:'q',morno:'m',frio:'f'}[nz(r.previsao)]||'';
+ const num=v=>{const n=Number(String(v||'').replace(/\.0$/,'').replace(/\s/g,''));return isFinite(n)&&n>0?n:0};
+ const lit=[['Barril',num(d.prevBarril)],['Garrafa',num(d.prevGarrafa)],['Luso',num(d.prevLuso)]].filter(x=>x[1]),mx=Math.max.apply(null,lit.map(x=>x[1]).concat([1]));
  const li=(l,v,h)=>v?'<div class="li"><span>'+l+'</span><b>'+(h||esc(v))+'</b></div>':'';
- const rows=li('Gestor',r.gestor)+li('Tipologia',d.tipologia)+li('Segmentação',d.segmentacao)+li('Marca atual',d.marcaAtual)+li('Marca a conquistar',d.marcaConquistar)+
-  li('Previsão garrafa',d.prevGarrafa&&fv('prevGarrafa',d.prevGarrafa))+li('Previsão Luso',d.prevLuso&&fv('prevLuso',d.prevLuso))+li('Data de abordagem',d.dataAbordagem&&fv('dataAbordagem',d.dataAbordagem))+
-  li('Planeada para',r.dataPlaneada&&fv('d',r.dataPlaneada))+li('Contacto',d.contactoNome)+li('Telefone',d.contacto,d.contacto&&'<a href="tel:'+esc(fv('contacto',d.contacto))+'">'+esc(fv('contacto',d.contacto))+'</a>')+
-  li('Email',d.email,d.email&&'<a href="mailto:'+esc(d.email)+'">'+esc(d.email)+'</a>')+li('Motivo',d.motivo)+li('ID SAP',d.idSAP);
- return '<div class="c'+(o?' open':'')+'"><div class="ct" onclick="abrir('+id+')"><div><div class="nm">'+esc(r.nome)+'</div><div class="sb">'+esc(r.localidade)+(r.orla==='Sim'?' · 🌊 orla':'')+'</div></div><div class="col"><span class="bg t-'+tp+'">'+tp+'</span><span class="bg e-'+r.estado+'">'+(r.estado==='novavisita'?'nova visita':r.estado)+'</span></div></div>'+
- '<div class="dt"><div class="kps">'+kp('Previsão',r.previsao,pc)+kp('Barril',d.prevBarril&&fv('prevBarril',d.prevBarril))+kp('Desconto barril',d.descontoBarril&&fv('descontoBarril',d.descontoBarril))+'</div>'+
- '<div class="sec">Dados do estabelecimento</div><div class="ls">'+rows+'</div>'+mat(r)+
+ const tel=d.contacto&&fv('contacto',d.contacto),seta='<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex:none;color:var(--mu)"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
+ const cerv=(d.marcaAtual||d.marcaConquistar)?'<div class="sec">Cerveja</div><div class="sw"><div><span>Atual</span><b>'+esc(d.marcaAtual||'—')+'</b></div>'+seta+'<div><span>A conquistar</span><b>'+esc(d.marcaConquistar||'—')+'</b></div></div>':'';
+ const dados=li('Tipologia',d.tipologia)+li('Segmentação',d.segmentacao)+li('Gestor',r.gestor)+li('Data de abordagem',d.dataAbordagem&&fv('dataAbordagem',d.dataAbordagem))+li('Planeada para',r.dataPlaneada&&fv('d',r.dataPlaneada))+li('Contacto',d.contactoNome)+
+  li('Telefone',tel,tel&&'<a href="tel:'+esc(tel)+'">'+esc(tel)+'</a>')+li('Email',d.email,d.email&&'<a href="mailto:'+esc(d.email)+'">'+esc(d.email)+'</a>')+li('Motivo',d.motivo);
+ return '<div class="c'+(o?' open':'')+'"><div class="ct" onclick="abrir('+id+')"><div><div class="nm">'+esc(r.nome)+'</div>'+(d.idSAP?'<span class="sap">Nº SAP '+esc(fv('idSAP',d.idSAP))+'</span>':'')+'<div class="sb">'+esc(r.localidade)+(r.orla==='Sim'?' · 🌊 orla':'')+'</div></div><div class="col"><span class="bg t-'+tp+'">'+tp+'</span><span class="bg e-'+r.estado+'">'+(r.estado==='novavisita'?'nova visita':r.estado)+'</span></div></div>'+
+ '<div class="dt"><div class="sec">Oportunidade</div><div class="g2c"><div class="kp"><span>Previsão de conquista</span><b class="'+pc+'">'+(r.previsao?esc(r.previsao):'—')+'</b></div><div class="kp"><span>Desconto barril</span><b>'+(d.descontoBarril?esc(fv('descontoBarril',d.descontoBarril)):'—')+'</b></div></div>'+
+ (lit.length?'<div class="sec">Litragem prevista</div>'+lit.map(x=>'<div class="bar"><span>'+x[0]+'</span><i style="width:'+Math.max(6,Math.round(x[1]/mx*62))+'%"></i><b>'+String(x[1]).replace(/\B(?=(\d{3})+(?!\d))/g,'\u00a0')+' L</b></div>').join(''):'')+
+ cerv+mat(r)+(dados?'<div class="sec">Dados</div><div class="ls">'+dados+'</div>':'')+
  '<textarea id="n_'+r.id+'" rows="2" placeholder="Notas da visita">'+esc(r.notas||'')+'</textarea>'+
  '<div class="ac3"><button class="btn gs" onclick="marcar('+id+',\'conquistado\')">Conquistado</button><button class="btn bl" onclick="marcar('+id+',\'novavisita\')">Nova visita</button><button class="btn am" onclick="marcar('+id+',\'recusou\')">Recusou</button></div>'+
- '<div class="ac"><a class="btn" href="'+mp+'" target="_blank" rel="noopener">📍 Maps</a>'+(r.estado!=='planeada'?'<button class="btn" onclick="marcar('+id+',\'planeada\')">Repor</button>':'')+'</div></div></div>'}
+ '<div class="ac"><a class="btn" href="'+mp+'" target="_blank" rel="noopener">📍 Maps</a>'+(r.estado!=='planeada'?'<button class="btn" onclick="marcar('+id+',\'planeada\')">Repor</button>':'')+(U.perfil==='editor'?'<button class="btn" onclick="editar('+id+')">✎ Editar</button>':'')+'</div></div></div>'}
+const EDITF=['Identificação',['nome','Nome','t','f'],['idSAP','Nº SAP','n'],['localidade','Localidade','t'],['gestor','Gestor','s'],['tipoVisita','Tipo de visita','s:Prospeção|Reconquista|Execução Barril'],['orla','Zona orla','s:Sim|Não'],['previsao','Previsão de conquista','s:|Quente|Morno|Frio'],
+ 'Cerveja',['marcaAtual','Marca atual','t'],['marcaConquistar','Marca a conquistar','t'],
+ 'Litragem e desconto',['prevBarril','Barril (L)','n'],['prevGarrafa','Garrafa (L)','n'],['prevLuso','Luso (L)','n'],['descontoBarril','Desconto barril (%)','p'],
+ 'Material necessário',['matConjuntos','Conjuntos','n'],['matChapeus','Chapéus','n'],['matFrio','Fridge','n'],['matMesasAltas','Mesas altas','n'],['matBidon','Bidon','n'],['matJardim','Jardim vertical','n'],['matMarca','Marca','t'],['matCor','Cor','t'],['matOutros','Outros','t','f'],
+ 'Dados',['tipologia','Tipologia','t'],['segmentacao','Segmentação','t'],['dataAbordagem','Data de abordagem','d'],['contactoNome','Contacto','t'],['contacto','Telefone','n'],['email','Email','t','f'],['motivo','Motivo','t','f']];
+function enorm(t,v){v=String(v||'').trim();if(t==='n')return v.replace(/\.0$/,'').replace(/\D/g,'');if(t==='p')return v?fv('descontoBarril',v):'';if(t==='d')return /^\d{4}-\d{2}-\d{2}$/.test(v)?v:'';return v}
+function edForm(r){const d=r.detalhe||{},gs=[...new Set(S.rows.map(x=>x.gestor))].sort();
+ return '<div class="ef">'+EDITF.map(f=>{if(typeof f==='string')return '<div class="sec">'+f+'</div>';const k=f[0],ty=f[2][0],o=enorm(ty,k in r&&k!=='detalhe'?r[k]:d[k]);let inp;
+  if(ty==='s'){const ops=k==='gestor'?gs:f[2].slice(2).split('|'),all=ops.indexOf(o)<0?ops.concat([o]):ops;inp='<select id="e_'+k+'" data-o="'+esc(o)+'">'+all.map(x=>'<option value="'+esc(x)+'"'+(x===o?' selected':'')+'>'+(esc(x)||'—')+'</option>').join('')+'</select>'}
+  else inp='<input id="e_'+k+'" data-o="'+esc(o)+'" value="'+esc(o)+'"'+(ty==='n'?' inputmode="numeric"':ty==='d'?' type="date"':'')+'>';
+  return '<div class="ei'+(f[3]?' full':'')+'"><label for="e_'+k+'">'+f[1]+'</label>'+inp+'</div>'}).join('')+'</div>'}
+function cardEdit(r){const id="'"+r.id+"'";return '<div class="c open"><div class="ct"><div><div class="nm">'+esc(r.nome)+'</div><div class="sb">A editar</div></div></div><div class="dt">'+edForm(r)+
+ '<div class="ac3" style="grid-template-columns:1fr 1fr;margin-top:16px"><button class="btn gs" onclick="guardarEd('+id+')">Guardar</button><button class="btn" onclick="cancelarEd()">Cancelar</button></div></div></div>'}
+function card(r){return(S.ed===r.id&&S.o===r.id&&U.perfil==='editor')?cardEdit(r):cardView(r)}
+function editar(id){S.ed=id;S.o=id;draw()}function cancelarEd(){S.ed='';draw()}
+async function guardarEd(id){const c={};let n=0;EDITF.forEach(f=>{if(typeof f==='string')return;const el=$('e_'+f[0]);if(!el)return;let v=el.value.trim();const ty=f[2][0];if(ty==='n')v=v.replace(/\D/g,'');else if(ty==='p'&&v)v=fv('descontoBarril',v);if(v!==el.dataset.o){c[f[0]]=v;n++}});
+ if(!n){S.ed='';draw();return}
+ const d=await post({action:'prospeccao_editar',id:id,campos:c,pinEditor:U.pin});if(!d||!d.ok){alert('Não foi possível guardar: '+((d&&d.erro)||'sem ligação'));return}
+ const i=S.rows.findIndex(x=>x.id===id);if(i>-1)S.rows[i]=d.row;S.ed='';draw()}
 function draw(){const ed=U.perfil==='editor',gs=[...new Set(S.rows.map(r=>r.gestor))].sort(),gsel=$('gSel');
  gsel.hidden=!ed;if(ed){gsel.innerHTML=gs.map(g=>'<option'+(mg(g,S.g)?' selected':'')+'>'+esc(g)+'</option>').join('');}
  const m=S.rows.filter(r=>mg(r.gestor,ed?(gs.find(g=>mg(g,S.g))||S.g):U.nome));
