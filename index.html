@@ -12,7 +12,7 @@
 @media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1412;--card:#1a211e;--tx:#eef2f0;--mu:#9aa8a2;--bd:#2b3632;--blb:#16233f;--gnb:#12301a;--rdb:#3a1616;--amb:#3a2a12;--pub:#2a1f45;color-scheme:dark}}
 :root[data-theme="dark"]{--bg:#0f1412;--card:#1a211e;--tx:#eef2f0;--mu:#9aa8a2;--bd:#2b3632;--blb:#16233f;--gnb:#12301a;--rdb:#3a1616;--amb:#3a2a12;--pub:#2a1f45;color-scheme:dark}
 :root[data-theme="light"]{color-scheme:light}
-.tg{padding:9px 11px;font-size:15px;line-height:1}
+.tg{padding:0 11px;height:42px;font-size:15px;line-height:1;flex:none}
 *{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--tx);padding:env(safe-area-inset-top) 12px 40px}
 .w{max-width:720px;margin:0 auto}button,select,input,textarea{font:inherit;color:inherit}
 .top{display:flex;align-items:center;gap:8px;padding:12px 0;position:sticky;top:0;background:var(--bg);z-index:5}
@@ -306,7 +306,7 @@ textarea{width:100%;margin-top:10px;border:1px solid var(--bd);border-radius:10p
 <p class="lock-titulo" id="lgTit"></p><div class="lock-dots" id="lgDots"><span class="lock-dot"></span><span class="lock-dot"></span><span class="lock-dot"></span><span class="lock-dot"></span></div><div class="lock-erro-msg" id="lgErro"></div><div class="lock-teclado" id="lgKb"></div>
 <button type="button" class="lock-link" id="lgLink" onclick="lgLinkAcao()">Mudar PIN</button></div></div></div>
 <div id="ap" hidden>
-<div class="top"><button class="btn" id="bV" onclick="voltar()" hidden>← Picos</button><h1 id="tt">Prospeção</h1><button class="btn tg" id="bT" onclick="alternarTema()" aria-label="Alternar tema claro/escuro"></button><button class="btn" id="bI" onclick="mostrarInstallPrompt(true)" hidden>📲 Instalar app</button><span class="gw" id="gW" hidden><span class="gav" id="gAv"></span><select id="gSel" class="btn" onchange="S.g=this.value;draw()"></select></span></div>
+<div class="top"><button class="btn" id="bV" onclick="voltar()" hidden>← Picos</button><h1 id="tt">Prospeção</h1><button class="btn" id="bI" onclick="mostrarInstallPrompt(true)" hidden>📲 Instalar app</button><span class="gw" id="gW" hidden><span class="gav" id="gAv"></span><select id="gSel" class="btn" onchange="S.g=this.value;draw()"></select></span><button class="btn tg" id="bT" onclick="alternarTema()" aria-label="Alternar tema claro/escuro"></button></div>
 <div class="tabs"><button class="btn on" id="tT" onclick="tab('todos')">Lista</button><button class="btn" id="tS" onclick="tab('semana')">Semana</button></div>
 <div id="vS" hidden><div class="nav"><button class="btn" onclick="sem(-7)">‹</button><b id="sT"></b><button class="btn" onclick="sem(7)">›</button></div><div class="dias" id="ds"></div></div>
 <div id="vT"><div class="fil"><input id="q" placeholder="Procurar nome…" oninput="S.q=this.value;S.so='';S.n=50;draw()"><select id="ft" onchange="S.t=this.value;S.n=50;draw()"><option value="">Todos os tipos</option><option>Prospeção</option><option>Reconquista</option><option>Execução Barril</option></select><select id="fc" onchange="S.c=this.value;S.n=50;draw()"></select><select id="fe" onchange="S.e=this.value;S.n=50;draw()"><option value="abertos">Por conquistar</option><option value="">Todos</option><option value="conquistado">Conquistados</option><option value="recusou">Recusaram</option><option value="novavisita">Nova visita</option><option value="arquivado">Arquivados</option></select></div></div>
