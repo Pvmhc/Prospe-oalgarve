@@ -80,6 +80,16 @@ textarea{width:100%;margin-top:10px;border:1px solid var(--bd);border-radius:10p
 .hist-data{font-weight:700;color:var(--tx)}
 .hist-notas{margin:3px 0 0;color:var(--mu);font-size:11.5px;line-height:1.3;word-break:break-word}
 
+/* Popup de Data para Nova Visita */
+.nv-overlay{position:fixed;inset:0;z-index:999999;background:rgba(11,12,16,.6);display:flex;align-items:center;justify-content:center;padding:16px}
+.nv-overlay[hidden]{display:none!important}
+.nv-card{background:var(--card);border:1px solid var(--bd);border-radius:18px;padding:20px;width:100%;max-width:340px;box-shadow:0 8px 30px rgba(0,0,0,.25)}
+.nv-card h3{margin:0 0 4px;font-size:17px;font-weight:800}
+.nv-card p{margin:0 0 14px;font-size:13px;color:var(--mu)}
+.nv-card input[type="date"]{width:100%;padding:11px;border:1px solid var(--bd);border-radius:10px;background:var(--bg);color:var(--tx);font-size:14px;box-sizing:border-box}
+.nv-btns{display:flex;flex-direction:column;gap:8px;margin-top:14px}
+.nv-btns-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+
 @media(max-width:1023px){
  .fil{margin:6px 0 4px}
  .fil input{flex:1 1 100%;min-width:0}
@@ -176,6 +186,23 @@ textarea{width:100%;margin-top:10px;border:1px solid var(--bd);border-radius:10p
 <div class="ips" id="ipIOS" style="display:none"><ol><li>Toca no ícone <b>Partilhar</b> (□ com seta ↑) na barra do Safari</li><li>Escolhe <b>"Adicionar ao Ecrã Principal"</b></li><li>Toca em <b>"Adicionar"</b> no canto superior direito</li></ol></div>
 <div class="ips" id="ipGen" style="display:none"><ol><li>Toca no menu do browser (⋮ ou ···)</li><li>Escolhe <b>"Instalar aplicação"</b> ou <b>"Adicionar ao ecrã principal"</b></li><li>Confirma tocando em <b>"Instalar"</b> / <b>"Adicionar"</b></li></ol></div>
 <div class="ipa"><button class="ipy" id="ipBtn" style="display:none" onclick="instalarApp()">📲 Instalar agora</button><button class="ipn" onclick="fecharInstall(true)">Agora não</button></div></div></div>
+
+<!-- Modal Popup para Data de Nova Visita -->
+<div class="nv-overlay" id="nvOv" hidden>
+  <div class="nv-card">
+    <h3>Agendar Nova Visita</h3>
+    <p id="nvNome">Escolhe a data pretendida:</p>
+    <input type="date" id="nvData">
+    <div class="nv-btns">
+      <button type="button" class="btn p" onclick="confirmarNovaVisita(false)">Confirmar data</button>
+      <div class="nv-btns-row">
+        <button type="button" class="btn bl" onclick="confirmarNovaVisita(true)">⚡ Automático</button>
+        <button type="button" class="btn" onclick="fecharNvPopup()">Cancelar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="w">
 <div class="lock-overlay" id="lg" hidden><div class="lock-box">
 <div class="lock-passo" id="lgPassoG"><p class="lock-titulo">Quem és tu? Toca na tua foto</p><div class="lock-gestores" id="lgGest"></div><div class="lock-erro-msg" id="lgErroG" style="margin-top:14px"></div></div>
@@ -262,10 +289,38 @@ function fecharPopupMobile(){
 function toggleHist(id){
  const e=$('h_'+id);if(e)e.hidden=!e.hidden;
 }
+
+/* Gestão de Popup para Agendar Nova Visita */
+let NV_PENDENTE=null;
+function abrirNvPopup(id){
+  const r=S.rows.find(x=>x.id===id);
+  NV_PENDENTE=id;
+  $('nvNome').textContent=r?'Estabelecimento: '+r.nome:'Escolhe a data pretendida:';
+  $('nvData').value=add(iso(new Date()),7);
+  $('nvOv').hidden=false;
+}
+function fecharNvPopup(){
+  $('nvOv').hidden=true;
+  NV_PENDENTE=null;
+}
+function confirmarNovaVisita(auto){
+  if(!NV_PENDENTE)return;
+  const id=NV_PENDENTE;
+  let dNova=null;
+  if(auto){
+    dNova=add(iso(new Date()),7);
+  }else{
+    const val=$('nvData').value;
+    dNova=val||add(iso(new Date()),7);
+  }
+  fecharNvPopup();
+  marcar(id,'novavisita',dNova);
+}
+
 let SAVING=false;
 function toast(t,err){let e=$('toast');if(!e){e=document.createElement('div');e.id='toast';e.style.cssText='position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:100000;max-width:90%;padding:10px 16px;border-radius:12px;font-size:13px;font-weight:700;color:#fff;box-shadow:0 4px 14px rgba(0,0,0,.25);text-align:center';document.body.appendChild(e)}e.style.background=err?'#dc2626':'#008200';e.textContent=t;e.style.display='block';clearTimeout(e._t);e._t=setTimeout(()=>{e.style.display='none'},err?7000:2200)}
-async function marcar(id,e){if(SAVING)return;SAVING=true;const bs=document.querySelectorAll('.ac3 .btn,.ac .btn');bs.forEach(b=>b.disabled=true);const ta=$('n_'+id);toast('A guardar…');
- try{const d=await post({action:'prospeccao_atualizar',id:id,estado:e,notas:ta?ta.value:undefined,pinEditor:U.pin});
+async function marcar(id,e,dataPlaneadaNova){if(SAVING)return;SAVING=true;const bs=document.querySelectorAll('.ac3 .btn,.ac .btn');bs.forEach(b=>b.disabled=true);const ta=$('n_'+id);toast('A guardar…');
+ try{const d=await post({action:'prospeccao_atualizar',id:id,estado:e,notas:ta?ta.value:undefined,dataPlaneada:dataPlaneadaNova,pinEditor:U.pin});
   if(!d||!d.ok){toast('Não guardou: '+((d&&d.erro)||'sem resposta do servidor'),true);return}
   const i=S.rows.findIndex(r=>r.id===id);
   if(i>-1){
@@ -273,7 +328,8 @@ async function marcar(id,e){if(SAVING)return;SAVING=true;const bs=document.query
     const nt=ta?ta.value:(rowAnt.notas||'');
     const hList=(rowAnt.historicoVisitas||[]).slice();
     hList.unshift({data:iso(new Date()),estado:e,notas:nt});
-    S.rows[i]=(d.row&&d.row.id)?Object.assign({},d.row,{historicoVisitas:d.row.historicoVisitas||hList}):Object.assign({},rowAnt,{estado:e,notas:nt,historicoVisitas:hList});
+    const dp=dataPlaneadaNova||rowAnt.dataPlaneada;
+    S.rows[i]=(d.row&&d.row.id)?Object.assign({},d.row,{dataPlaneada:d.row.dataPlaneada||dp,historicoVisitas:d.row.historicoVisitas||hList}):Object.assign({},rowAnt,{estado:e,notas:nt,dataPlaneada:dp,historicoVisitas:hList});
   }
   toast('Guardado: '+(e==='novavisita'?'nova visita':e));draw()}
  catch(x){toast('Erro: '+(x&&x.message||x),true)}
@@ -310,7 +366,7 @@ function cardView(r){const o=S.o===r.id,tp=r.tipoVisita==='Execução Barril'?'E
  (lit.length?'<div class="sec">Litragem prevista</div>'+lit.map(x=>'<div class="bar"><span>'+x[0]+'</span><i style="width:'+Math.max(6,Math.round(x[1]/mx*62))+'%"></i><b>'+String(x[1]).replace(/\B(?=(\d{3})+(?!\d))/g,'\u00a0')+' L</b></div>').join(''):'')+
  cerv+mat(r)+'</div><div class="dc2">'+(dados?'<div class="sec">Dados</div><div class="ls">'+dados+'</div>':'')+'</div><div class="dfoot">'+
  '<textarea id="n_'+r.id+'" rows="2" placeholder="Notas da visita">'+esc(r.notas||'')+'</textarea>'+
- '<div class="ac3"><button type="button" class="btn gs" onclick="marcar('+id+',\'conquistado\')">Conquistado</button><button type="button" class="btn bl" onclick="marcar('+id+',\'novavisita\')">Nova visita</button><button type="button" class="btn am" onclick="marcar('+id+',\'recusou\')">Recusou</button></div>'+
+ '<div class="ac3"><button type="button" class="btn gs" onclick="marcar('+id+',\'conquistado\')">Conquistado</button><button type="button" class="btn bl" onclick="abrirNvPopup('+id+')">Nova visita</button><button type="button" class="btn am" onclick="marcar('+id+',\'recusou\')">Recusou</button></div>'+
  '<div class="ac"><a class="btn" href="'+mp+'" target="_blank" rel="noopener">📍 Maps</a>'+(r.estado!=='planeada'?'<button type="button" class="btn" onclick="marcar('+id+',\'planeada\')">Repor</button>':'')+(U.perfil==='editor'?'<button type="button" class="btn" onclick="editar('+id+')">✎ Editar</button>':'')+'</div></div></div></div>'}
 const EDITF=['Identificação',['nome','Nome','t','f'],['idSAP','Nº SAP','n'],['localidade','Localidade','t'],['gestor','Gestor','s'],['tipoVisita','Tipo de visita','s:Prospeção|Reconquista|Execução Barril'],['orla','Zona orla','s:Sim|Não'],['previsao','Previsão de conquista','s:|Quente|Morno|Frio'],
  'Cerveja',['marcaAtual','Marca atual','t'],['marcaConquistar','Marca a conquistar','t'],
