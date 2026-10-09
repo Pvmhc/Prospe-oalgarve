@@ -59,9 +59,9 @@ textarea{width:100%;margin-top:10px;border:1px solid var(--bd);border-radius:10p
 .box-painel{background:var(--bg);border:1px solid var(--bd);border-radius:10px;padding:10px;margin-bottom:8px}
 .box-painel:last-child{margin-bottom:0}
 
-/* Banner de Proposta */
-.prop-card-banner{margin:2px 0 10px;border-radius:10px;padding:7px 11px;display:flex;align-items:center;justify-content:space-between;gap:8px;box-sizing:border-box}
-.prop-card-banner.sem{background:var(--bg);border:1.5px dashed var(--bd);cursor:pointer}
+/* Banner da Proposta Adaptado para Coluna */
+.prop-card-banner{margin-top:10px;border-radius:10px;padding:9px 11px;display:flex;align-items:center;justify-content:space-between;gap:8px;box-sizing:border-box}
+.prop-card-banner.sem{background:var(--card);border:1.5px dashed var(--bd);cursor:pointer}
 .prop-card-banner.sem:hover{border-color:var(--p)}
 .prop-card-banner.com{background:var(--gnb);border:1.5px solid var(--gn)}
 .prop-banner-left{display:flex;align-items:center;gap:8px;min-width:0}
@@ -543,25 +543,25 @@ function cardView(r){
  
  const temProp=!!PROPOSTAS_MAP[r.id];
  const bannerProposta = temProp
-   ? '<div class="prop-card-banner com" style="grid-column:1/-1">' +
+   ? '<div class="prop-card-banner com">' +
        '<div class="prop-banner-left">' +
          '<span class="prop-banner-icon">📑</span>' +
          '<div class="prop-banner-txt">' +
-           '<b>Proposta Comercial Pronta</b>' +
-           '<span>Documento anexado para consulta rápida</span>' +
+           '<b>Proposta Pronta</b>' +
+           '<span>Documento anexado</span>' +
          '</div>' +
        '</div>' +
-       '<button type="button" class="btn bl prop-banner-btn" onclick="abrirPropPopup('+id+')">Consultar / Gerir</button>' +
+       '<button type="button" class="btn bl prop-banner-btn" onclick="abrirPropPopup('+id+')">Ver / Gerir</button>' +
      '</div>'
-   : '<div class="prop-card-banner sem" style="grid-column:1/-1" onclick="abrirPropPopup('+id+')">' +
+   : '<div class="prop-card-banner sem" onclick="abrirPropPopup('+id+')">' +
        '<div class="prop-banner-left">' +
          '<span class="prop-banner-icon">📎</span>' +
          '<div class="prop-banner-txt">' +
            '<b>Sem Proposta Comercial</b>' +
-           '<span>Toca para anexar PDF ou imagem</span>' +
+           '<span>Toca para carregar ficheiro</span>' +
          '</div>' +
        '</div>' +
-       '<button type="button" class="btn prop-banner-btn">+ Carregar</button>' +
+       '<button type="button" class="btn prop-banner-btn">+ Anexar</button>' +
      '</div>';
 
  const litragemBloco = lit.length
@@ -574,7 +574,7 @@ function cardView(r){
   li('Telefone',tel,tel&&'<a href="tel:'+esc(tel)+'">'+esc(tel)+'</a>')+li('Email',d.email,d.email&&'<a href="mailto:'+esc(d.email)+'">'+esc(d.email)+'</a>')+li('Motivo',d.motivo);
 
  return '<div class="c'+(o?' open':'')+'"><div class="ct" onclick="abrir('+id+')"><div><div class="nm">'+esc(r.nome)+'</div>'+(d.idSAP?'<span class="sap">Nº SAP '+esc(fv('idSAP',d.idSAP))+'</span>':'')+'<div class="sb">'+esc(r.localidade)+(U.perfil==='editor'&&S.g==='*'?' · '+esc(r.gestor):'')+(r.orla==='Sim'?' · 🌊 orla':'')+'</div></div><div class="col"><span class="bg t-'+tp+'">'+tp+'</span><span class="bg e-'+r.estado+'">'+(r.estado==='novavisita'?'nova visita':r.estado)+'</span></div></div>'+
- '<div class="dt">'+bannerProposta+
+ '<div class="dt">'+
  /* Coluna 1 (Esquerda): Ficha do Estabelecimento + Potencial & Negócio */
  '<div class="dc1">'+
    '<div class="box-painel">'+
@@ -587,10 +587,11 @@ function cardView(r){
      litragemBloco+
    '</div>'+
  '</div>'+
- /* Coluna 2 (Direita): Transição de Marca & Material */
+ /* Coluna 2 (Direita): Transição de Marca, Material & Proposta Comercial */
  '<div class="dc2">'+
    '<div class="box-painel">'+
      cerv+mat(r)+
+     bannerProposta+
    '</div>'+
  '</div>'+
  '<div class="dfoot">'+
