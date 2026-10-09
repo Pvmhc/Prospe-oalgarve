@@ -90,7 +90,18 @@ textarea{width:100%;margin-top:10px;border:1px solid var(--bd);border-radius:10p
 .nv-btns{display:flex;flex-direction:column;gap:8px;margin-top:14px}
 .nv-btns-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 
-/* Estilos de Proposta */
+/* Bloco de Destaque da Proposta */
+.prop-card-banner{margin:4px 0 14px;border-radius:12px;padding:11px 13px;display:flex;align-items:center;justify-content:space-between;gap:10px;box-sizing:border-box}
+.prop-card-banner.sem{background:var(--bg);border:1.5px dashed var(--bd);cursor:pointer}
+.prop-card-banner.sem:hover{border-color:var(--p)}
+.prop-card-banner.com{background:var(--gnb);border:1.5px solid var(--gn)}
+.prop-banner-left{display:flex;align-items:center;gap:10px;min-width:0}
+.prop-banner-icon{font-size:22px;flex:none}
+.prop-banner-txt{min-width:0}
+.prop-banner-txt b{display:block;font-size:13px;color:var(--tx);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.prop-banner-txt span{display:block;font-size:11px;color:var(--mu)}
+.prop-banner-btn{flex:none;font-size:12px;padding:7px 11px;border-radius:8px;font-weight:700}
+
 .prop-box{background:var(--bg);border:1px dashed var(--bd);border-radius:12px;padding:12px;text-align:center;margin:10px 0}
 .prop-info{font-size:12.5px;font-weight:600;color:var(--tx);margin-bottom:8px;word-break:break-all}
 .prop-meta{font-size:11px;color:var(--mu);margin-bottom:8px}
@@ -281,7 +292,7 @@ function mg(a,b){
   const x=nz(a).split(/\s+/),y=nz(b).split(/\s+/);
   if(!x[0]||!y[0]||x[0]!==y[0])return false;
   const l=x[x.length-1],m=y[y.length-1];
-  return l===m||(l.length===1&&m[0]===l)||(m.length===1&&l[0]===m);
+  return l===m||(l.length===1&&m[0]||m)===l||(m.length===1&&l[0]===m);
 }
 const ROT={tipologia:'Tipologia',segmentacao:'Segmentação',marcaAtual:'Marca atual',marcaConquistar:'Marca a conquistar',prevBarril:'Previsão barril',prevGarrafa:'Previsão garrafa',prevLuso:'Previsão Luso',descontoBarril:'Desconto barril',dataAbordagem:'Data abordagem',contactoNome:'Contacto',contacto:'Telefone',email:'Email',motivo:'Motivo',idSAP:'ID SAP',status:'Status Excel'};
 async function post(p){p=Object.assign({utilizador:U.nome,perfil:U.perfil},p);for(let i=0;i<3;i++){try{const r=await fetch(API,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(p)});const d=await r.json();if(d&&d.ok===false&&/ocupado/i.test(d.erro||'')&&i<2){await new Promise(s=>setTimeout(s,800*(i+1)));continue}return d}catch(e){if(i==2)return{ok:false,erro:'sem ligação'};await new Promise(s=>setTimeout(s,800))}}}
@@ -542,7 +553,8 @@ function getHistorico(r){
  }
  return h.sort((a,b)=>new Date(b.data)-new Date(a.data));
 }
-function cardView(r){const o=S.o===r.id,tp=r.tipoVisita==='Execução Barril'?'Execução':r.tipoVisita,d=r.detalhe||{},mp='https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(r.nome+' '+r.localidade+' Portugal'),id="'"+r.id+"'";
+function cardView(r){
+ const o=S.o===r.id,tp=r.tipoVisita==='Execução Barril'?'Execução':r.tipoVisita,d=r.detalhe||{},mp='https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(r.nome+' '+r.localidade+' Portugal'),id="'"+r.id+"'";
  const pc={quente:'q',morno:'m',frio:'f'}[nz(r.previsao)]||'';
  const num=v=>{const n=Number(String(v||'').replace(/\.0$/,'').replace(/\s/g,''));return isFinite(n)&&n>0?n:0};
  const lit=[['Barril',num(d.prevBarril)],['Garrafa',num(d.prevGarrafa)],['Luso',num(d.prevLuso)]].filter(x=>x[1]),mx=Math.max.apply(null,lit.map(x=>x[1]).concat([1]));
@@ -556,17 +568,37 @@ function cardView(r){const o=S.o===r.id,tp=r.tipoVisita==='Execução Barril'?'E
  const histBox=hist.length?'<div id="h_'+r.id+'" class="hist-box" hidden>'+hist.map(v=>'<div class="hist-item"><div class="hist-top"><span class="hist-data">'+fv('d',v.data)+'</span><span class="bg e-'+(v.estado||'feita')+'">'+(v.estado==='novavisita'?'nova visita':(v.estado||'feita'))+'</span></div>'+(v.notas?'<div class="hist-notas">'+esc(v.notas)+'</div>':'')+'</div>').join('')+'</div>':'';
  
  const temProp=!!PROPOSTAS_MAP[r.id];
- const propRotulo=temProp?'📄 Proposta ✓':'📄 Proposta';
+ const bannerProposta = temProp
+   ? '<div class="prop-card-banner com" style="grid-column:1/-1">' +
+       '<div class="prop-banner-left">' +
+         '<span class="prop-banner-icon">📑</span>' +
+         '<div class="prop-banner-txt">' +
+           '<b>Proposta Comercial Anexada</b>' +
+           '<span>Documento pronto para consulta</span>' +
+         '</div>' +
+       '</div>' +
+       '<button type="button" class="btn bl prop-banner-btn" onclick="abrirPropPopup('+id+')">Ver / Gerir</button>' +
+     '</div>'
+   : '<div class="prop-card-banner sem" style="grid-column:1/-1" onclick="abrirPropPopup('+id+')">' +
+       '<div class="prop-banner-left">' +
+         '<span class="prop-banner-icon">📎</span>' +
+         '<div class="prop-banner-txt">' +
+           '<b>Sem Proposta Comercial</b>' +
+           '<span>Toca aqui para carregar PDF / Imagem</span>' +
+         '</div>' +
+       '</div>' +
+       '<button type="button" class="btn prop-banner-btn">+ Carregar</button>' +
+     '</div>';
 
  const dados=li('Tipologia',d.tipologia)+li('Segmentação',d.segmentacao)+li('Gestor',r.gestor)+(ult?li('Última visita',ult.data,histBtn):'')+histBox+li('Planeada para',r.dataPlaneada&&fv('d',r.dataPlaneada))+li('Contacto',d.contactoNome)+
   li('Telefone',tel,tel&&'<a href="tel:'+esc(tel)+'">'+esc(tel)+'</a>')+li('Email',d.email,d.email&&'<a href="mailto:'+esc(d.email)+'">'+esc(d.email)+'</a>')+li('Motivo',d.motivo);
  return '<div class="c'+(o?' open':'')+'"><div class="ct" onclick="abrir('+id+')"><div><div class="nm">'+esc(r.nome)+'</div>'+(d.idSAP?'<span class="sap">Nº SAP '+esc(fv('idSAP',d.idSAP))+'</span>':'')+'<div class="sb">'+esc(r.localidade)+(U.perfil==='editor'&&S.g==='*'?' · '+esc(r.gestor):'')+(r.orla==='Sim'?' · 🌊 orla':'')+'</div></div><div class="col"><span class="bg t-'+tp+'">'+tp+'</span><span class="bg e-'+r.estado+'">'+(r.estado==='novavisita'?'nova visita':r.estado)+'</span></div></div>'+
- '<div class="dt"><div class="dc1"><div class="sec">Oportunidade</div><div class="g2c"><div class="kp"><span>Previsão de conquista</span><b class="'+pc+'">'+(r.previsao?esc(r.previsao):'—')+'</b></div><div class="kp"><span>Desconto barril</span><b>'+(d.descontoBarril?esc(fv('descontoBarril',d.descontoBarril)):'—')+'</b></div></div>'+
+ '<div class="dt">'+bannerProposta+'<div class="dc1"><div class="sec">Oportunidade</div><div class="g2c"><div class="kp"><span>Previsão de conquista</span><b class="'+pc+'">'+(r.previsao?esc(r.previsao):'—')+'</b></div><div class="kp"><span>Desconto barril</span><b>'+(d.descontoBarril?esc(fv('descontoBarril',d.descontoBarril)):'—')+'</b></div></div>'+
  (lit.length?'<div class="sec">Litragem prevista</div>'+lit.map(x=>'<div class="bar"><span>'+x[0]+'</span><i style="width:'+Math.max(6,Math.round(x[1]/mx*62))+'%"></i><b>'+String(x[1]).replace(/\B(?=(\d{3})+(?!\d))/g,'\u00a0')+' L</b></div>').join(''):'')+
  cerv+mat(r)+'</div><div class="dc2">'+(dados?'<div class="sec">Dados</div><div class="ls">'+dados+'</div>':'')+'</div><div class="dfoot">'+
  '<textarea id="n_'+r.id+'" rows="2" placeholder="Notas da visita">'+esc(r.notas||'')+'</textarea>'+
  '<div class="ac3"><button type="button" class="btn gs" onclick="marcar('+id+',\'conquistado\')">Conquistado</button><button type="button" class="btn bl" onclick="abrirNvPopup('+id+')">Nova visita</button><button type="button" class="btn am" onclick="marcar('+id+',\'recusou\')">Recusou</button></div>'+
- '<div class="ac"><a class="btn" href="'+mp+'" target="_blank" rel="noopener">📍 Maps</a><button type="button" class="btn'+(temProp?' gn':'')+'" onclick="abrirPropPopup('+id+')">'+propRotulo+'</button>'+(r.estado!=='planeada'?'<button type="button" class="btn" onclick="marcar('+id+',\'planeada\')">Repor</button>':'')+'<button type="button" class="btn" onclick="abrirArqPopup('+id+')">📁 Arquivar</button>'+(U.perfil==='editor'?'<button type="button" class="btn" onclick="editar('+id+')">✎ Editar</button>':'')+'</div></div></div></div>'}
+ '<div class="ac"><a class="btn" href="'+mp+'" target="_blank" rel="noopener">📍 Maps</a>'+(r.estado!=='planeada'?'<button type="button" class="btn" onclick="marcar('+id+',\'planeada\')">Repor</button>':'')+'<button type="button" class="btn" onclick="abrirArqPopup('+id+')">📁 Arquivar</button>'+(U.perfil==='editor'?'<button type="button" class="btn" onclick="editar('+id+')">✎ Editar</button>':'')+'</div></div></div></div>'}
 const EDITF=['Identificação',['nome','Nome','t','f'],['idSAP','Nº SAP','n'],['localidade','Localidade','t'],['gestor','Gestor','s'],['tipoVisita','Tipo de visita','s:Prospeção|Reconquista|Execução Barril'],['orla','Zona orla','s:Sim|Não'],['previsao','Previsão de conquista','s:|Quente|Morno|Frio'],
  'Cerveja',['marcaAtual','Marca atual','t'],['marcaConquistar','Marca a conquistar','t'],
  'Litragem e desconto',['prevBarril','Barril (L)','n'],['prevGarrafa','Garrafa (L)','n'],['prevLuso','Luso (L)','n'],['descontoBarril','Desconto barril (%)','p'],
