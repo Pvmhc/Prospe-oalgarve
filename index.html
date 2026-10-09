@@ -157,6 +157,7 @@ async function buscar(){try{const r=await fetch(API+'?tipo=prospeccao&t='+Date.n
 async function carregar(){if(S.rows.length)draw();else $('ls').innerHTML='<div class="vz">A carregar…</div>';const ok=await buscar();if(!ok&&!S.rows.length){$('ls').innerHTML='<div class="vz">Não foi possível carregar. Verifica a ligação.</div>';return}draw()}
 function abrirId(id){const r=S.rows.find(x=>x.id===id);if(!r)return;if(U.perfil==='editor')S.g=r.gestor;S.tab='todos';S.so=id;S.o=id;S.q='';S.t='';S.c='';draw()}
 function tab(t){S.tab=t;S.so='';S.o='';S.n=50;draw()}function sem(n){S.seg=add(S.seg,n);S.dia=S.seg;S.o='';draw()}
+const ADMINS=['Vitor Catarino','Bruno Rocha'],isAdm=()=>U.perfil==='editor'&&ADMINS.some(a=>mg(a,U.nome));
 const DK=()=>matchMedia('(min-width:1024px)').matches;
 function abrir(id){S.o=(DK()||S.o!==id)?id:'';draw()}
 async function marcar(id,e){const ta=$('n_'+id),d=await post({action:'prospeccao_atualizar',id:id,estado:e,notas:ta?ta.value:undefined});if(!d||!d.ok){alert('Não foi possível guardar: '+((d&&d.erro)||'sem ligação'));return}const i=S.rows.findIndex(r=>r.id===id);if(i>-1)S.rows[i]=d.row;draw()}
@@ -207,7 +208,7 @@ function draw0(){const ed=U.perfil==='editor',gs=[...new Set(S.rows.map(r=>r.ges
  gsel.hidden=!ed;if(ed){gsel.innerHTML='<option value="*"'+(S.g==='*'?' selected':'')+'>Todos</option>'+gs.map(g=>'<option'+(mg(g,S.g)?' selected':'')+'>'+esc(g)+'</option>').join('');}
  const all=ed&&S.g==='*',m=all?S.rows.slice():S.rows.filter(r=>mg(r.gestor,ed?(gs.find(g=>mg(g,S.g))||S.g):U.nome));
  $('tS').classList.toggle('on',S.tab==='semana');$('tT').classList.toggle('on',S.tab==='todos');$('vS').hidden=S.tab!=='semana';$('vT').hidden=S.tab!=='todos';
- $('ed').innerHTML=ed?'<button class="btn" onclick="gerar()">Gerar semana</button><button class="btn" onclick="$(\'fx\').click()">Importar Excel</button><button class="btn" onclick="exportar()">Descarregar Excel</button><input id="fx" type="file" accept=".xlsx" hidden onchange="importar(this)">':'<button class="btn" onclick="exportar()">Descarregar Excel</button>';
+ $('ed').innerHTML=isAdm()?'<button class="btn" onclick="gerar()">Gerar semana</button><button class="btn" onclick="$(\'fx\').click()">Importar Excel</button><button class="btn" onclick="exportar()">Descarregar Excel</button><input id="fx" type="file" accept=".xlsx" hidden onchange="importar(this)">':'<button class="btn" onclick="exportar()">Descarregar Excel</button>';
  let l;if(S.tab==='semana'){const d0=new Date(S.seg+'T12:00:00'),d4=new Date(add(S.seg,4)+'T12:00:00'),t=new Date(Date.UTC(d0.getFullYear(),d0.getMonth(),d0.getDate()));t.setUTCDate(t.getUTCDate()+4-(t.getUTCDay()||7));const w=Math.ceil(((t-new Date(Date.UTC(t.getUTCFullYear(),0,1)))/864e5+1)/7);
   $('sT').textContent='Semana '+w+' · '+d0.getDate()+'–'+d4.getDate()+'/'+(d4.getMonth()+1);
   $('ds').innerHTML=[0,1,2,3,4].map(i=>{const d=add(S.seg,i);return '<button class="dia'+(d===S.dia?' on':'')+'" onclick="S.dia=\''+d+'\';S.o=\'\';draw()">'+['Seg','Ter','Qua','Qui','Sex'][i]+'<small>'+m.filter(r=>r.dataPlaneada===d).length+' visitas</small></button>'}).join('');
@@ -216,9 +217,9 @@ function draw0(){const ed=U.perfil==='editor',gs=[...new Set(S.rows.map(r=>r.ges
   l=S.so?m.filter(r=>r.id===S.so):m.filter(r=>(!S.t||r.tipoVisita===S.t)&&(!S.c||r.localidade===S.c)&&(S.e==='abertos'?r.estado!=='conquistado':(!S.e||r.estado===S.e))&&(!S.q||nz(r.nome).includes(nz(S.q)))).sort((a,b)=>a.localidade.localeCompare(b.localidade,'pt')||a.nome.localeCompare(b.nome,'pt'));
   $('ls').innerHTML=(S.so?'<button class="btn" onclick="S.so=\'\';S.o=\'\';draw()">Ver todos</button>':'<div class="sb">'+l.length+' estabelecimentos</div>')+l.slice(0,S.n).map(cl).join('')+(l.length>S.n?'<button class="btn" style="width:100%" onclick="S.n+=50;draw()">Mostrar mais</button>':'')}}
 $('gSel').onchange=function(){S.g=this.value;S.o='';draw()};
-async function gerar(){if(!confirm('Gerar o plano da semana '+S.seg+' para todos os gestores?'))return;const d=await post({action:'prospeccao_gerar',segunda:S.seg,pinEditor:U.pin});if(!d||!d.ok){alert('Erro: '+((d&&d.erro)||'sem ligação'));return}carregar()}
+async function gerar(){if(!isAdm())return;if(!confirm('Gerar o plano da semana '+S.seg+' para todos os gestores?'))return;const d=await post({action:'prospeccao_gerar',segunda:S.seg,pinEditor:U.pin});if(!d||!d.ok){alert('Erro: '+((d&&d.erro)||'sem ligação'));return}carregar()}
 function xl(){return window.XLSX?Promise.resolve():new Promise((ok,er)=>{const t=document.createElement('script');t.src='https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';t.onload=ok;t.onerror=er;document.head.appendChild(t)})}
-async function importar(i){if(!i.files[0])return;await xl();const wb=XLSX.read(await i.files[0].arrayBuffer()),rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:''});
+async function importar(i){if(!isAdm()||!i.files[0])return;await xl();const wb=XLSX.read(await i.files[0].arrayBuffer()),rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:''});
  if(!rows.length||!rows[0].id||!rows[0].nome){alert('Ficheiro inválido: usa o prospecao_limpo.xlsx.');return}if(!confirm('Importar '+rows.length+' estabelecimentos? As marcações dos gestores mantêm-se.'))return;
  const d=await post({action:'prospeccao_importar',rows:rows,pinEditor:U.pin});if(!d||!d.ok){alert('Erro: '+((d&&d.erro)||'sem ligação'));return}i.value='';carregar()}
 async function exportar(){await xl();const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(S.rows.map(r=>Object.assign({},r,r.detalhe,{detalhe:undefined}))),'Prospeção');XLSX.writeFile(wb,'prospecao_'+iso(new Date())+'.xlsx')}
