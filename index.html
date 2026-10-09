@@ -234,7 +234,7 @@ async function lgProc(){const p=LG.buf,m=LG.modo,n=LG.nome;if(p.length!==4||LG.o
  if(r&&r.ok){lgOk(n,p,r.perfil);return}if(r&&r.semPin){LG.temPin=false;lgErro(r.erro,'criar1');return}lgErro((r&&r.erro)||'PIN incorreto.')}
 async function iniciar(id){if(!EMB)setTimeout(()=>window.mostrarInstallPrompt&&window.mostrarInstallPrompt(),900);$('lg').hidden=true;$('ap').hidden=false;$('bV').hidden=!(EMB||Q.get('voltar'));S.seg=segDe(new Date());const h=iso(new Date());S.dia=h<=add(S.seg,4)?h:S.seg;S.g=U.nome;
  await carregar();const a=id||Q.get('id');if(a)abrirId(a)}
-async function buscar(){try{const r=await fetch(API+'?tipo=prospeccao&t='+Date.now()),d=await r.json();if(d&&d.ok&&d.rows){S.rows=d.rows;try{localStorage.setItem('prospRows',JSON.stringify(d.rows))}catch(e){}return true}[cite: 1]}catch(e){}
+async function buscar(){try{const r=await fetch(API+'?tipo=prospeccao&t='+Date.now()),d=await r.json();if(d&&d.ok&&d.rows){S.rows=d.rows;try{localStorage.setItem('prospRows',JSON.stringify(d.rows))}catch(e){}return true}}catch(e){}
  const d=await post({action:'prospeccao_ler'});if(d&&d.ok){S.rows=d.rows||[];return true}return false}
 async function carregar(){if(S.rows.length)draw();else $('ls').innerHTML='<div class="vz">A carregar…</div>';const ok=await buscar();if(!ok&&!S.rows.length){$('ls').innerHTML='<div class="vz">Não foi possível carregar. Verifica a ligação.</div>';return}draw()}
 function abrirId(id){const r=S.rows.find(x=>x.id===id);if(!r)return;if(U.perfil==='editor')S.g=r.gestor;S.tab='todos';S.so=id;S.o=id;S.q='';S.t='';S.c='';draw()}
