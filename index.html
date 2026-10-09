@@ -43,6 +43,9 @@ textarea{width:100%;margin-top:10px;border:1px solid var(--bd);border-radius:10p
 @media(prefers-color-scheme:dark){.lock-tecla:not(.apagar),.lock-gestor-foto{background:var(--card);color:var(--tx);border-color:var(--bd)}}
 .mt{margin-top:10px;border:1px dashed var(--bd);border-radius:12px;padding:10px}.mh{font-size:12px;font-weight:700;color:var(--mu);margin-bottom:8px}
 .mg{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.mi{background:var(--bg);border-radius:10px;padding:8px 4px;text-align:center}.mi b{display:block;font-size:18px}.mi span{font-size:11px;color:var(--mu)}.mx{font-size:12px;color:var(--mu);margin-top:8px}
+.kps{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.kp{background:var(--bg);border-radius:12px;padding:10px 6px;text-align:center}.kp span{display:block;font-size:11px;color:var(--mu);margin-bottom:4px}.kp b{font-size:17px;font-weight:700}.kp b.q{color:var(--rd)}.kp b.m{color:var(--am)}.kp b.f{color:var(--bl)}
+.sec{font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--mu);margin:16px 0 4px}.li{display:flex;justify-content:space-between;gap:16px;padding:8px 0;border-bottom:1px solid var(--bd);font-size:13px}.li:last-child{border-bottom:0}.li span{color:var(--mu);flex:none}.li b{text-align:right;font-weight:600;word-break:break-word}.li a{color:var(--bl);text-decoration:none}
+.mt{margin:0;padding:0;border:0}.ac3{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:10px}.ac3 .btn{padding:12px 4px;text-align:center}.btn.bl{background:var(--blb);color:var(--bl)}.btn.gs{background:var(--gn);border-color:var(--gn);color:#fff}
 </style></head><body><div class="w">
 <div class="lock-overlay" id="lg" hidden><div class="lock-box">
 <div class="lock-passo" id="lgPassoG"><p class="lock-titulo">Quem és tu? Toca na tua foto</p><div class="lock-gestores" id="lgGest"></div><div class="lock-erro-msg" id="lgErroG" style="margin-top:14px"></div></div>
@@ -105,15 +108,24 @@ function abrirId(id){const r=S.rows.find(x=>x.id===id);if(!r)return;if(U.perfil=
 function tab(t){S.tab=t;S.so='';S.o='';S.n=50;draw()}function sem(n){S.seg=add(S.seg,n);S.dia=S.seg;S.o='';draw()}
 function abrir(id){S.o=S.o===id?'':id;draw()}
 async function marcar(id,e){const ta=$('n_'+id),d=await post({action:'prospeccao_atualizar',id:id,estado:e,notas:ta?ta.value:undefined});if(!d||!d.ok){alert('Não foi possível guardar: '+((d&&d.erro)||'sem ligação'));return}const i=S.rows.findIndex(r=>r.id===id);if(i>-1)S.rows[i]=d.row;draw()}
-function mat(r){const d=r.detalhe||{},T=[['matConjuntos','Conjuntos'],['matChapeus','Chapéus'],['matFrio','Frio'],['matMesasAltas','Mesas altas'],['matBidon','Bidon'],['matJardim','Jardim vertical']].filter(x=>d[x[0]]);
+function fv(k,v){v=String(v);if(/^\d+\.0$/.test(v))v=v.slice(0,-2);if(/^prev/.test(k)&&/^\d+$/.test(v))return Number(v).toLocaleString('pt-PT');if(k==='descontoBarril'&&/^[0-9.]+$/.test(v)){const p=parseFloat(v);return (p<=1?+(p*100).toFixed(2):p)+'%'}if(/^\d{4}-\d{2}-\d{2}$/.test(v))return v.split('-').reverse().join('/');return v}
+function mat(r){const d=r.detalhe||{},T=[['matConjuntos','Conjuntos'],['matChapeus','Chapéus'],['matFrio','Fridge'],['matMesasAltas','Mesas altas'],['matBidon','Bidon'],['matJardim','Jardim vertical']].filter(x=>d[x[0]]);
  const tx=[['matMarca','Marca'],['matCor','Cor'],['matOutros','Outros']].filter(x=>d[x[0]]).map(x=>x[1]+': '+esc(d[x[0]])).join(' · ');
- if(!T.length&&!tx)return '';return '<div class="mt"><div class="mh">Material necessário para conquista</div>'+(T.length?'<div class="mg">'+T.map(x=>'<div class="mi"><b>'+esc(d[x[0]])+'</b><span>'+x[1]+'</span></div>').join('')+'</div>':'')+(tx?'<div class="mx">'+tx+'</div>':'')+'</div>'}
-function card(r){const o=S.o===r.id,tp=r.tipoVisita==='Execução Barril'?'Execução':r.tipoVisita,m='https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(r.nome+' '+r.localidade+' Portugal');
- const dt=Object.keys(ROT).filter(k=>(r.detalhe||{})[k]).map(k=>'<div><span>'+ROT[k]+'</span><b>'+esc(r.detalhe[k])+'</b></div>').join('');
- return '<div class="c'+(o?' open':'')+'"><div class="ct" onclick="abrir(\''+r.id+'\')"><div><div class="nm">'+esc(r.nome)+'</div><div class="sb">'+esc(r.localidade)+(r.orla==='Sim'?' · 🌊 orla':'')+'</div></div><div class="col"><span class="bg t-'+tp+'">'+tp+'</span><span class="bg e-'+r.estado+'">'+(r.estado==='novavisita'?'nova visita':r.estado)+'</span></div></div>'+
- '<div class="dt"><div class="g"><div><span>Previsão</span><b>'+esc(r.previsao||'—')+'</b></div><div><span>Gestor</span><b>'+esc(r.gestor)+'</b></div>'+(r.dataPlaneada?'<div><span>Planeada</span><b>'+esc(r.dataPlaneada)+'</b></div>':'')+dt+'</div>'+mat(r)+
- '<textarea id="n_'+r.id+'" rows="2" placeholder="Notas da visita">'+esc(r.notas||'')+'</textarea><div class="ac"><a class="btn" href="'+m+'" target="_blank" rel="noopener">📍 Maps</a>'+
- '<button class="btn gn" onclick="marcar(\''+r.id+'\',\'conquistado\')">Conquistado</button><button class="btn p" onclick="marcar(\''+r.id+'\',\'novavisita\')">Nova visita</button><button class="btn am" onclick="marcar(\''+r.id+'\',\'recusou\')">Recusou</button>'+(r.estado!=='planeada'?'<button class="btn" onclick="marcar(\''+r.id+'\',\'planeada\')">Repor</button>':'')+'</div></div></div>'}
+ if(!T.length&&!tx)return '';return '<div class="sec">Material necessário para conquista</div><div class="mt">'+(T.length?'<div class="mg">'+T.map(x=>'<div class="mi"><b>'+esc(fv(x[0],d[x[0]]))+'</b><span>'+x[1]+'</span></div>').join('')+'</div>':'')+(tx?'<div class="mx">'+tx+'</div>':'')+'</div>'}
+function card(r){const o=S.o===r.id,tp=r.tipoVisita==='Execução Barril'?'Execução':r.tipoVisita,d=r.detalhe||{},mp='https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(r.nome+' '+r.localidade+' Portugal');
+ const pc={quente:'q',morno:'m',frio:'f'}[nz(r.previsao)]||'',id="'"+r.id+"'";
+ const kp=(l,v,c)=>'<div class="kp"><span>'+l+'</span><b class="'+(c||'')+'">'+(v?esc(v):'—')+'</b></div>';
+ const li=(l,v,h)=>v?'<div class="li"><span>'+l+'</span><b>'+(h||esc(v))+'</b></div>':'';
+ const rows=li('Gestor',r.gestor)+li('Tipologia',d.tipologia)+li('Segmentação',d.segmentacao)+li('Marca atual',d.marcaAtual)+li('Marca a conquistar',d.marcaConquistar)+
+  li('Previsão garrafa',d.prevGarrafa&&fv('prevGarrafa',d.prevGarrafa))+li('Previsão Luso',d.prevLuso&&fv('prevLuso',d.prevLuso))+li('Data de abordagem',d.dataAbordagem&&fv('dataAbordagem',d.dataAbordagem))+
+  li('Planeada para',r.dataPlaneada&&fv('d',r.dataPlaneada))+li('Contacto',d.contactoNome)+li('Telefone',d.contacto,d.contacto&&'<a href="tel:'+esc(fv('contacto',d.contacto))+'">'+esc(fv('contacto',d.contacto))+'</a>')+
+  li('Email',d.email,d.email&&'<a href="mailto:'+esc(d.email)+'">'+esc(d.email)+'</a>')+li('Motivo',d.motivo)+li('ID SAP',d.idSAP);
+ return '<div class="c'+(o?' open':'')+'"><div class="ct" onclick="abrir('+id+')"><div><div class="nm">'+esc(r.nome)+'</div><div class="sb">'+esc(r.localidade)+(r.orla==='Sim'?' · 🌊 orla':'')+'</div></div><div class="col"><span class="bg t-'+tp+'">'+tp+'</span><span class="bg e-'+r.estado+'">'+(r.estado==='novavisita'?'nova visita':r.estado)+'</span></div></div>'+
+ '<div class="dt"><div class="kps">'+kp('Previsão',r.previsao,pc)+kp('Barril',d.prevBarril&&fv('prevBarril',d.prevBarril))+kp('Desconto barril',d.descontoBarril&&fv('descontoBarril',d.descontoBarril))+'</div>'+
+ '<div class="sec">Dados do estabelecimento</div><div class="ls">'+rows+'</div>'+mat(r)+
+ '<textarea id="n_'+r.id+'" rows="2" placeholder="Notas da visita">'+esc(r.notas||'')+'</textarea>'+
+ '<div class="ac3"><button class="btn gs" onclick="marcar('+id+',\'conquistado\')">Conquistado</button><button class="btn bl" onclick="marcar('+id+',\'novavisita\')">Nova visita</button><button class="btn am" onclick="marcar('+id+',\'recusou\')">Recusou</button></div>'+
+ '<div class="ac"><a class="btn" href="'+mp+'" target="_blank" rel="noopener">📍 Maps</a>'+(r.estado!=='planeada'?'<button class="btn" onclick="marcar('+id+',\'planeada\')">Repor</button>':'')+'</div></div></div>'}
 function draw(){const ed=U.perfil==='editor',gs=[...new Set(S.rows.map(r=>r.gestor))].sort(),gsel=$('gSel');
  gsel.hidden=!ed;if(ed){gsel.innerHTML=gs.map(g=>'<option'+(mg(g,S.g)?' selected':'')+'>'+esc(g)+'</option>').join('');}
  const m=S.rows.filter(r=>mg(r.gestor,ed?(gs.find(g=>mg(g,S.g))||S.g):U.nome));
