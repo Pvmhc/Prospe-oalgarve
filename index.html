@@ -83,14 +83,15 @@ function lgDots(){[...$('lgDots').children].forEach((d,i)=>d.classList.toggle('c
 function lgModo(m){LG.modo=m;LG.buf='';lgDots();$('lgTit').textContent=TIT[m]||'';const l=$('lgLink');if(m==='entrar'){l.textContent='Mudar PIN';l.disabled=!LG.temPin}else if(m==='bloqueado'){l.textContent='';l.disabled=true}else{l.textContent='Cancelar';l.disabled=false}}
 function lgVoltar(){LG.req++;LG.nome='';LG.ocup=false;lgPasso(false)}
 function lgLinkAcao(){if(LG.ocup)return;lgMsg('');LG.tmp=LG.atual='';if(LG.modo==='entrar')lgModo('mudar0');else if(LG.modo.indexOf('mudar')===0)lgModo('entrar');else lgVoltar()}
-async function lgEsc(i){const n=LG.lista[i];if(!n)return;LG.nome=n;$('lgErroG').textContent='';$('lgFoto').innerHTML=foto(n);$('lgQuem').textContent=curto(n);const rq=++LG.req;lgPasso(true);LG.temPin=false;lgMsg('');lgModo('bloqueado');$('lgTit').textContent='A verificar…';LG.ocup=true;
+const KN=(()=>{try{return JSON.parse(localStorage.getItem('prospPin')||'{}')}catch(e){return{}}})();
+async function lgEsc(i){const n=LG.lista[i];if(!n)return;if(KN[n]){LG.nome=n;LG.req++;$('lgErroG').textContent='';$('lgFoto').innerHTML=foto(n);$('lgQuem').textContent=curto(n);LG.temPin=true;lgMsg('');lgPasso(true);lgModo('entrar');return}LG.nome=n;$('lgErroG').textContent='';$('lgFoto').innerHTML=foto(n);$('lgQuem').textContent=curto(n);const rq=++LG.req;lgPasso(true);LG.temPin=false;lgMsg('');lgModo('bloqueado');$('lgTit').textContent='A verificar…';LG.ocup=true;
  const r=await post({action:'estado_pin',nome:n});if(rq!==LG.req)return;LG.ocup=false;
  if(r&&r.ok){LG.temPin=!!r.temPin;if(!r.temPin&&r.editor){lgModo('bloqueado');$('lgTit').textContent='PIN do editor por definir';lgMsg('Define-o no script do Google (função definirPinEditor).')}else lgModo(r.temPin?'entrar':'criar1')}
  else{lgVoltar();$('lgErroG').textContent=(r&&r.erro)||'Sem ligação ao servidor. Tenta de novo.'}}
 function lgDig(d){if(LG.ocup||LG.modo==='bloqueado'||LG.buf.length>=4)return;lgMsg('');LG.buf+=d;lgDots();if(LG.buf.length===4)setTimeout(lgProc,120)}
 function lgApagar(){if(LG.ocup)return;LG.buf=LG.buf.slice(0,-1);lgDots()}
 function lgErro(m,prox){const d=$('lgDots');d.classList.add('erro');lgMsg(m);setTimeout(()=>{d.classList.remove('erro');lgModo(prox||LG.modo)},400)}
-function lgOk(n,p,perfil){U.nome=n;U.perfil=perfil;U.pin=perfil==='editor'?p:'';iniciar()}
+function lgOk(n,p,perfil){KN[n]=1;try{localStorage.setItem('prospPin',JSON.stringify(KN))}catch(e){}U.nome=n;U.perfil=perfil;U.pin=perfil==='editor'?p:'';iniciar()}
 async function lgProc(){const p=LG.buf,m=LG.modo,n=LG.nome;if(p.length!==4||LG.ocup)return;
  if(m==='criar1'){LG.tmp=p;lgModo('criar2');return}
  if(m==='criar2'){if(p!==LG.tmp){LG.tmp='';lgErro('Os PINs não coincidem. Tenta de novo.','criar1');return}LG.ocup=true;$('lgTit').textContent='A guardar…';const r=await post({action:'criar_pin',nome:n,pin:p});LG.ocup=false;LG.tmp='';
@@ -103,7 +104,9 @@ async function lgProc(){const p=LG.buf,m=LG.modo,n=LG.nome;if(p.length!==4||LG.o
  if(r&&r.ok){lgOk(n,p,r.perfil);return}if(r&&r.semPin){LG.temPin=false;lgErro(r.erro,'criar1');return}lgErro((r&&r.erro)||'PIN incorreto.')}
 async function iniciar(id){$('lg').hidden=true;$('ap').hidden=false;$('bV').hidden=!(EMB||Q.get('voltar'));S.seg=segDe(new Date());const h=iso(new Date());S.dia=h<=add(S.seg,4)?h:S.seg;S.g=U.nome;
  await carregar();const a=id||Q.get('id');if(a)abrirId(a)}
-async function carregar(){$('ls').innerHTML='<div class="vz">A carregar…</div>';const d=await post({action:'prospeccao_ler'});if(!d||!d.ok){$('ls').innerHTML='<div class="vz">Não foi possível carregar ('+esc((d&&d.erro)||'')+').</div>';return}S.rows=d.rows||[];draw()}
+async function buscar(){try{const r=await fetch(API+'?tipo=prospeccao&t='+Date.now()),d=await r.json();if(d&&d.ok&&d.rows){S.rows=d.rows;try{localStorage.setItem('prospRows',JSON.stringify(d.rows))}catch(e){}return true}}catch(e){}
+ const d=await post({action:'prospeccao_ler'});if(d&&d.ok){S.rows=d.rows||[];return true}return false}
+async function carregar(){if(S.rows.length)draw();else $('ls').innerHTML='<div class="vz">A carregar…</div>';const ok=await buscar();if(!ok&&!S.rows.length){$('ls').innerHTML='<div class="vz">Não foi possível carregar. Verifica a ligação.</div>';return}draw()}
 function abrirId(id){const r=S.rows.find(x=>x.id===id);if(!r)return;if(U.perfil==='editor')S.g=r.gestor;S.tab='todos';S.so=id;S.o=id;S.q='';S.t='';S.c='';draw()}
 function tab(t){S.tab=t;S.so='';S.o='';S.n=50;draw()}function sem(n){S.seg=add(S.seg,n);S.dia=S.seg;S.o='';draw()}
 function abrir(id){S.o=S.o===id?'':id;draw()}
@@ -140,14 +143,18 @@ function draw(){const ed=U.perfil==='editor',gs=[...new Set(S.rows.map(r=>r.gest
   $('ls').innerHTML=(S.so?'<button class="btn" onclick="S.so=\'\';S.o=\'\';draw()">Ver todos</button>':'<div class="sb">'+l.length+' estabelecimentos</div>')+l.slice(0,S.n).map(card).join('')+(l.length>S.n?'<button class="btn" style="width:100%" onclick="S.n+=50;draw()">Mostrar mais</button>':'')}}
 $('gSel').onchange=function(){S.g=this.value;S.o='';draw()};
 async function gerar(){if(!confirm('Gerar o plano da semana '+S.seg+' para todos os gestores?'))return;const d=await post({action:'prospeccao_gerar',segunda:S.seg,pinEditor:U.pin});if(!d||!d.ok){alert('Erro: '+((d&&d.erro)||'sem ligação'));return}carregar()}
-async function importar(i){if(!i.files[0])return;const wb=XLSX.read(await i.files[0].arrayBuffer()),rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:''});
+function xl(){return window.XLSX?Promise.resolve():new Promise((ok,er)=>{const t=document.createElement('script');t.src='https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';t.onload=ok;t.onerror=er;document.head.appendChild(t)})}
+async function importar(i){if(!i.files[0])return;await xl();const wb=XLSX.read(await i.files[0].arrayBuffer()),rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:''});
  if(!rows.length||!rows[0].id||!rows[0].nome){alert('Ficheiro inválido: usa o prospecao_limpo.xlsx.');return}if(!confirm('Importar '+rows.length+' estabelecimentos? As marcações dos gestores mantêm-se.'))return;
  const d=await post({action:'prospeccao_importar',rows:rows,pinEditor:U.pin});if(!d||!d.ok){alert('Erro: '+((d&&d.erro)||'sem ligação'));return}i.value='';carregar()}
-function exportar(){const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(S.rows.map(r=>Object.assign({},r,r.detalhe,{detalhe:undefined}))),'Prospeção');XLSX.writeFile(wb,'prospecao_'+iso(new Date())+'.xlsx')}
+async function exportar(){await xl();const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(S.rows.map(r=>Object.assign({},r,r.detalhe,{detalhe:undefined}))),'Prospeção');XLSX.writeFile(wb,'prospecao_'+iso(new Date())+'.xlsx')}
 (async function(){
- if(EMB){window.addEventListener('message',e=>{if(e.origin!==location.origin)return;const m=e.data||{};if(m.tipo==='sessao'){U.nome=m.utilizador;U.perfil=m.perfil;U.pin=m.pinEditor||'';iniciar(m.id)}});parent.postMessage({tipo:'pronto'},location.origin);return}
+ if(EMB){window.addEventListener('message',e=>{if(e.origin!==location.origin)return;const m=e.data||{};if(m.tipo==='sessao'){U.nome=m.utilizador;U.perfil=m.perfil;U.pin=m.pinEditor||'';if(m.rows&&m.rows.length)S.rows=m.rows;iniciar(m.id)}});parent.postMessage({tipo:'pronto'},location.origin);return}
  $('lgKb').innerHTML=[1,2,3,4,5,6,7,8,9].map(n=>'<button type="button" class="lock-tecla" onclick="lgDig(\''+n+'\')">'+n+'</button>').join('')+'<button type="button" class="lock-tecla vazia" tabindex="-1" aria-hidden="true"></button><button type="button" class="lock-tecla" onclick="lgDig(\'0\')">0</button><button type="button" class="lock-tecla apagar" onclick="lgApagar()" aria-label="Apagar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 5H9l-6 7 6 7h12a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1z"/><line x1="12" y1="9" x2="18" y2="15"/><line x1="18" y1="9" x2="12" y2="15"/></svg></button>';
  $('lg').hidden=false;document.addEventListener('keydown',e=>{if($('lg').hidden||$('lgPassoP').hidden)return;if(/^\d$/.test(e.key))lgDig(e.key);else if(e.key==='Backspace')lgApagar()});
- try{const r=await fetch(API+'?tipo=config&t='+Date.now()),d=await r.json();LG.lista=d.listaGestores||[];LG.fotos=d.fotosPessoas||{};lgGrid()}catch(e){$('lgErroG').textContent='Sem ligação ao servidor.'}
-})();
-</script><script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script></body></html>
+ try{const c=JSON.parse(localStorage.getItem('prospCfg')||'null');if(c&&c.l){LG.lista=c.l;LG.fotos=c.f||{};lgGrid()}}catch(e){}
+ try{S.rows=JSON.parse(localStorage.getItem('prospRows')||'[]')}catch(e){}
+ buscar();
+ try{const r=await fetch(API+'?tipo=gestores&t='+Date.now()),d=await r.json();if(d&&d.listaGestores){LG.lista=d.listaGestores;LG.fotos=d.fotosPessoas||{};lgGrid();try{localStorage.setItem('prospCfg',JSON.stringify({l:LG.lista,f:LG.fotos}))}catch(e){}}}catch(e){if(!LG.lista.length)$('lgErroG').textContent='Sem ligação ao servidor.'}
+ })();
+</script></body></html>
