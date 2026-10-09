@@ -48,18 +48,37 @@ textarea{width:100%;margin-top:10px;border:1px solid var(--bd);border-radius:10p
 .mt{margin-top:6px;border:1px dashed var(--bd);border-radius:10px;padding:8px}
 .mg{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.mi{background:var(--card);border:1px solid var(--bd);border-radius:8px;padding:6px 4px;text-align:center}.mi b{display:block;font-size:15px}.mi span{font-size:11px;color:var(--mu)}.mx{font-size:11.5px;color:var(--mu);margin-top:6px}
 .kps{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.kp{background:var(--card);border:1px solid var(--bd);border-radius:8px;padding:6px 8px;text-align:center}.kp span{display:block;font-size:11px;color:var(--mu);margin-bottom:2px}.kp b{font-size:15px;font-weight:700}.kp b.q{color:var(--rd)}.kp b.m{color:var(--am)}.kp b.f{color:var(--bl)}
-.sec{font-size:11px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--mu);margin:0 0 6px}.li{display:flex;justify-content:space-between;gap:12px;padding:6px 0;border-bottom:1px solid var(--bd);font-size:12.5px}.li:last-child{border-bottom:0}.li span{color:var(--mu);flex:none}.li b{text-align:right;font-weight:600;word-break:break-word}.li a{color:var(--bl);text-decoration:none}
+.sec{font-size:11px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--mu);margin:0 0 6px}
+.li{display:flex;justify-content:space-between;gap:12px;padding:6px 0;border-bottom:1px solid var(--bd);font-size:12.5px}.li:last-child{border-bottom:0}.li span{color:var(--mu);flex:none}.li b{text-align:right;font-weight:600;word-break:break-word}.li a{color:var(--bl);text-decoration:none}
 .ac3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px}.ac3 .btn{padding:10px 6px;text-align:center;font-size:12.5px}.btn.bl{background:var(--blb);color:var(--bl)}.btn.gs{background:var(--gn);border-color:var(--gn);color:#fff}
 .sap{display:inline-block;margin-top:4px;font-size:11.5px;font-weight:700;color:var(--mu);background:var(--bg);border-radius:6px;padding:2px 7px}
 .g2c{display:grid;grid-template-columns:1fr 1fr;gap:6px}
 .bar{display:flex;align-items:center;gap:10px;margin:6px 0;font-size:12.5px}.bar span{width:56px;color:var(--mu);flex:none;font-weight:600}.bar i{display:block;height:10px;border-radius:5px;background:var(--bl);flex:none}.bar b{margin-left:auto;font-weight:700}
 .sw{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--bd);border-radius:8px;padding:8px 10px}.sw div{flex:1}.sw span{display:block;font-size:10.5px;color:var(--mu)}.sw b{font-size:13.5px;font-weight:800}
 
-/* Painéis de Divisão Estruturada */
-.box-painel{background:var(--bg);border:1px solid var(--bd);border-radius:10px;padding:10px;margin-bottom:8px}
+/* Painéis com Distinção Temática */
+.box-painel{border:1px solid var(--bd);border-radius:10px;padding:10px;margin-bottom:8px}
 .box-painel:last-child{margin-bottom:0}
 
-/* Banner da Proposta Adaptado para Coluna */
+.box-painel.box-ficha{background:#f8fafc;border-left:4px solid #64748b}
+.box-painel.box-ficha .sec{color:#475569}
+
+.box-painel.box-negocio{background:#f0f7ff;border-left:4px solid #2563eb}
+.box-painel.box-negocio .sec{color:#1d4ed8}
+
+.box-painel.box-cerveja{background:#f4fbf5;border-left:4px solid #008200}
+.box-painel.box-cerveja .sec{color:#008200}
+
+@media(prefers-color-scheme:dark){
+  .box-painel.box-ficha{background:#171d1b;border-left-color:#94a3b8}
+  .box-painel.box-ficha .sec{color:#cbd5e1}
+  .box-painel.box-negocio{background:#111c2e;border-left-color:#3b82f6}
+  .box-painel.box-negocio .sec{color:#93c5fd}
+  .box-painel.box-cerveja{background:#0e2316;border-left-color:#22c55e}
+  .box-painel.box-cerveja .sec{color:#86efac}
+}
+
+/* Banner de Proposta */
 .prop-card-banner{margin-top:10px;border-radius:10px;padding:9px 11px;display:flex;align-items:center;justify-content:space-between;gap:8px;box-sizing:border-box}
 .prop-card-banner.sem{background:var(--card);border:1.5px dashed var(--bd);cursor:pointer}
 .prop-card-banner.sem:hover{border-color:var(--p)}
@@ -517,7 +536,7 @@ async function marcar(id,e,dataPlaneadaNova,motivoExtra){if(SAVING)return;SAVING
 function fv(k,v){v=String(v);if(/^\d+\.0$/.test(v))v=v.slice(0,-2);if(/^prev/.test(k)&&/^\d+$/.test(v))return Number(v).toLocaleString('pt-PT');if(k==='descontoBarril'&&/^[0-9.]+$/.test(v)){const p=parseFloat(v);return (p<=1?+(p*100).toFixed(2):p)+'%'}if(/^\d{4}-\d{2}-\d{2}$/.test(v))return v.split('-').reverse().join('/');return v}
 function mat(r){const d=r.detalhe||{},T=[['matConjuntos','Conjuntos'],['matChapeus','Chapéus'],['matFrio','Fridge'],['matMesasAltas','Mesas altas'],['matBidon','Bidon'],['matJardim','Jardim vertical']].filter(x=>d[x[0]]);
  const tx=[['matMarca','Marca'],['matCor','Cor'],['matOutros','Outros']].filter(x=>d[x[0]]).map(x=>x[1]+': '+esc(d[x[0]])).join(' · ');
- if(!T.length&&!tx)return '';return '<div class="sec" style="margin-top:10px">Material de Conquista</div><div class="mt">'+(T.length?'<div class="mg">'+T.map(x=>'<div class="mi"><b>'+esc(fv(x[0],d[x[0]]))+'</b><span>'+x[1]+'</span></div>').join('')+'</div>':'')+(tx?'<div class="mx">'+tx+'</div>':'')+'</div>'}
+ if(!T.length&&!tx)return '';return '<div class="sec" style="margin-top:10px">📦 Material de Conquista</div><div class="mt">'+(T.length?'<div class="mg">'+T.map(x=>'<div class="mi"><b>'+esc(fv(x[0],d[x[0]]))+'</b><span>'+x[1]+'</span></div>').join('')+'</div>':'')+(tx?'<div class="mx">'+tx+'</div>':'')+'</div>'}
 function getHistorico(r){
  const d=r.detalhe||{};
  let h=(r.historicoVisitas||[]).slice();
@@ -534,7 +553,7 @@ function cardView(r){
  const lit=[['Barril',num(d.prevBarril)],['Garrafa',num(d.prevGarrafa)],['Luso',num(d.prevLuso)]].filter(x=>x[1]),mx=Math.max.apply(null,lit.map(x=>x[1]).concat([1]));
  const li=(l,v,h)=>v?'<div class="li"><span>'+l+'</span><b>'+(h||esc(v))+'</b></div>':'';
  const tel=d.contacto&&fv('contacto',d.contacto),seta='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex:none;color:var(--mu)"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
- const cerv=(d.marcaAtual||d.marcaConquistar)?'<div class="sec">Transição de Cerveja</div><div class="sw"><div><span>Atual</span><b>'+esc(d.marcaAtual||'—')+'</b></div>'+seta+'<div><span>A conquistar</span><b style="color:var(--p)">'+esc(d.marcaConquistar||'—')+'</b></div></div>':'';
+ const cerv=(d.marcaAtual||d.marcaConquistar)?'<div class="sec">🍺 Transição de Cerveja</div><div class="sw"><div><span>Atual</span><b>'+esc(d.marcaAtual||'—')+'</b></div>'+seta+'<div><span>A conquistar</span><b style="color:var(--p)">'+esc(d.marcaConquistar||'—')+'</b></div></div>':'';
  
  const hist=getHistorico(r);
  const ult=hist[0];
@@ -577,19 +596,19 @@ function cardView(r){
  '<div class="dt">'+
  /* Coluna 1 (Esquerda): Ficha do Estabelecimento + Potencial & Negócio */
  '<div class="dc1">'+
-   '<div class="box-painel">'+
-     '<div class="sec">Ficha do Estabelecimento</div>'+
+   '<div class="box-painel box-ficha">'+
+     '<div class="sec">🏢 Ficha do Estabelecimento</div>'+
      '<div class="ls">'+dados+'</div>'+
    '</div>'+
-   '<div class="box-painel">'+
-     '<div class="sec">Potencial & Negócio</div>'+
+   '<div class="box-painel box-negocio">'+
+     '<div class="sec">📊 Potencial & Negócio</div>'+
      '<div class="g2c"><div class="kp"><span>Previsão de conquista</span><b class="'+pc+'">'+(r.previsao?esc(r.previsao):'—')+'</b></div><div class="kp"><span>Desconto barril</span><b>'+(d.descontoBarril?esc(fv('descontoBarril',d.descontoBarril)):'—')+'</b></div></div>'+
      litragemBloco+
    '</div>'+
  '</div>'+
  /* Coluna 2 (Direita): Transição de Marca, Material & Proposta Comercial */
  '<div class="dc2">'+
-   '<div class="box-painel">'+
+   '<div class="box-painel box-cerveja">'+
      cerv+mat(r)+
      bannerProposta+
    '</div>'+
