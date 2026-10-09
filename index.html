@@ -175,7 +175,15 @@ function tab(t){S.tab=t;S.so='';S.o='';S.n=50;draw()}function sem(n){S.seg=add(S
 const ADMINS=['Vitor Catarino','Bruno Rocha'],isAdm=()=>U.perfil==='editor'&&ADMINS.some(a=>mg(a,U.nome));
 const DK=()=>matchMedia('(min-width:1024px)').matches;
 function abrir(id){S.o=(DK()||S.o!==id)?id:'';draw()}
-async function marcar(id,e){const ta=$('n_'+id),d=await post({action:'prospeccao_atualizar',id:id,estado:e,notas:ta?ta.value:undefined});if(!d||!d.ok){alert('Não foi possível guardar: '+((d&&d.erro)||'sem ligação'));return}const i=S.rows.findIndex(r=>r.id===id);if(i>-1)S.rows[i]=d.row;draw()}
+let SAVING=false;
+function toast(t,err){let e=$('toast');if(!e){e=document.createElement('div');e.id='toast';e.style.cssText='position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:100000;max-width:90%;padding:10px 16px;border-radius:12px;font-size:13px;font-weight:700;color:#fff;box-shadow:0 4px 14px rgba(0,0,0,.25);text-align:center';document.body.appendChild(e)}e.style.background=err?'#dc2626':'#008200';e.textContent=t;e.style.display='block';clearTimeout(e._t);e._t=setTimeout(()=>{e.style.display='none'},err?7000:2200)}
+async function marcar(id,e){if(SAVING)return;SAVING=true;const bs=document.querySelectorAll('.ac3 .btn,.ac .btn');bs.forEach(b=>b.disabled=true);const ta=$('n_'+id);toast('A guardar…');
+ try{const d=await post({action:'prospeccao_atualizar',id:id,estado:e,notas:ta?ta.value:undefined,pinEditor:U.pin});
+  if(!d||!d.ok){toast('Não guardou: '+((d&&d.erro)||'sem resposta do servidor'),true);return}
+  const i=S.rows.findIndex(r=>r.id===id);if(i>-1)S.rows[i]=(d.row&&d.row.id)?d.row:Object.assign({},S.rows[i],{estado:e,notas:ta?ta.value:S.rows[i].notas});
+  toast('Guardado: '+(e==='novavisita'?'nova visita':e));draw()}
+ catch(x){toast('Erro: '+(x&&x.message||x),true)}
+ finally{SAVING=false;bs.forEach(b=>{b.disabled=false})}}
 function fv(k,v){v=String(v);if(/^\d+\.0$/.test(v))v=v.slice(0,-2);if(/^prev/.test(k)&&/^\d+$/.test(v))return Number(v).toLocaleString('pt-PT');if(k==='descontoBarril'&&/^[0-9.]+$/.test(v)){const p=parseFloat(v);return (p<=1?+(p*100).toFixed(2):p)+'%'}if(/^\d{4}-\d{2}-\d{2}$/.test(v))return v.split('-').reverse().join('/');return v}
 function mat(r){const d=r.detalhe||{},T=[['matConjuntos','Conjuntos'],['matChapeus','Chapéus'],['matFrio','Fridge'],['matMesasAltas','Mesas altas'],['matBidon','Bidon'],['matJardim','Jardim vertical']].filter(x=>d[x[0]]);
  const tx=[['matMarca','Marca'],['matCor','Cor'],['matOutros','Outros']].filter(x=>d[x[0]]).map(x=>x[1]+': '+esc(d[x[0]])).join(' · ');
