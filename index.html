@@ -238,7 +238,12 @@ const add=(s,n)=>{const d=new Date(s+'T12:00:00');d.setDate(d.getDate()+n);retur
 const segDe=d=>{d=new Date(d);d.setDate(d.getDate()-((d.getDay()+6)%7));return iso(d)};
 const nz=s=>String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[.,]/g,'').trim();
 const esc=t=>String(t==null?'':t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-function mg(a,b){const x=nz(a).split(/\s+/),y=nz(b).split(/\s+/);if(x[0]!==y[0])return false;const l=x[x.length-1],m=y[y.length-1];return l===m||(l.length===1&&m[0]===l)||(m.length===1&&l[0]===m)}
+function mg(a,b){
+  const x=nz(a).split(/\s+/),y=nz(b).split(/\s+/);
+  if(!x[0]||!y[0]||x[0]!==y[0])return false;
+  const l=x[x.length-1],m=y[y.length-1];
+  return l===m||(l.length===1&&m[0]===l)||(m.length===1&&l[0]===m);
+}
 const ROT={tipologia:'Tipologia',segmentacao:'Segmentação',marcaAtual:'Marca atual',marcaConquistar:'Marca a conquistar',prevBarril:'Previsão barril',prevGarrafa:'Previsão garrafa',prevLuso:'Previsão Luso',descontoBarril:'Desconto barril',dataAbordagem:'Data abordagem',contactoNome:'Contacto',contacto:'Telefone',email:'Email',motivo:'Motivo',idSAP:'ID SAP',status:'Status Excel'};
 async function post(p){p=Object.assign({utilizador:U.nome,perfil:U.perfil},p);for(let i=0;i<3;i++){try{const r=await fetch(API,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(p)});const d=await r.json();if(d&&d.ok===false&&/ocupado/i.test(d.erro||'')&&i<2){await new Promise(s=>setTimeout(s,800*(i+1)));continue}return d}catch(e){if(i==2)return{ok:false,erro:'sem ligação'};await new Promise(s=>setTimeout(s,800))}}}
 function voltar(){if(EMB)parent.postMessage({tipo:'voltar'},location.origin);else if(Q.get('voltar'))location.href=Q.get('voltar')}
@@ -275,7 +280,7 @@ async function lgProc(){const p=LG.buf,m=LG.modo,n=LG.nome;if(p.length!==4||LG.o
  if(r&&r.ok){lgOk(n,p,r.perfil);return}if(r&&r.semPin){LG.temPin=false;lgErro(r.erro,'criar1');return}lgErro((r&&r.erro)||'PIN incorreto.')}
 async function iniciar(id){if(!EMB)setTimeout(()=>window.mostrarInstallPrompt&&window.mostrarInstallPrompt(),900);$('lg').hidden=true;$('ap').hidden=false;$('bV').hidden=!(EMB||Q.get('voltar'));S.seg=segDe(new Date());const h=iso(new Date());S.dia=h<=add(S.seg,4)?h:S.seg;S.g=U.nome;
  await carregar();const a=id||Q.get('id');if(a)abrirId(a)}
-async function buscar(){try{const r=await fetch(API+'?tipo=prospeccao&t='+Date.now()),d=await r.json();if(d&&d.ok&&d.rows){S.rows=d.rows;try{localStorage.setItem('prospRows',JSON.stringify(d.rows))}catch(e){}return true}[cite: 1]}catch(e){}
+async function buscar(){try{const r=await fetch(API+'?tipo=prospeccao&t='+Date.now()),d=await r.json();if(d&&d.ok&&d.rows){S.rows=d.rows;try{localStorage.setItem('prospRows',JSON.stringify(d.rows))}catch(e){}return true}}catch(e){}
  const d=await post({action:'prospeccao_ler'});if(d&&d.ok){S.rows=d.rows||[];return true}return false}
 async function carregar(){if(S.rows.length)draw();else $('ls').innerHTML='<div class="vz">A carregar…</div>';const ok=await buscar();if(!ok&&!S.rows.length){$('ls').innerHTML='<div class="vz">Não foi possível carregar. Verifica a ligação.</div>';return}draw()}
 function abrirId(id){const r=S.rows.find(x=>x.id===id);if(!r)return;if(U.perfil==='editor')S.g=r.gestor;S.tab='todos';S.so=id;S.o=id;S.q='';S.t='';S.c='';draw()}
