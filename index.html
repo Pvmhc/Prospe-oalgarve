@@ -443,11 +443,34 @@ async function abrirPropPopup(id){
   $('propOv').hidden=false;
 }
 function fecharPropPopup(){$('propOv').hidden=true;PROP_PENDENTE=null;}
+/* Lê o desconto de barril gravado pelo gerador de propostas nas propriedades do PDF */
+async function lerDescontoBarrilPdf(f){
+  try{
+    if(!/\.pdf$/i.test(f.name||'')&&f.type!=='application/pdf')return null;
+    const buf=await f.arrayBuffer(),u8=new Uint8Array(buf);let txt='';
+    for(let i=0;i<u8.length;i+=32768)txt+=String.fromCharCode.apply(null,u8.subarray(i,i+32768));
+    const m=txt.match(/SCCPROP\|v1\|([^)\\\r\n]*)/);if(!m)return null;
+    const o={};m[1].split('|').forEach(x=>{const k=x.split('=');const v=parseFloat(k[1]);if(k[0]&&isFinite(v))o[k[0]]=v});
+    const ordem=['sagres','heineken'].concat(Object.keys(o));
+    const marca=ordem.find(k=>k in o);return marca?{marca:marca,valor:o[marca],todos:o}:null;
+  }catch(e){return null}
+}
+async function atualizarDescontoDaProposta(id,desc){
+  const txt=String(desc.valor).replace('.',',');
+  const outros=Object.keys(desc.todos).filter(k=>k!==desc.marca).map(k=>k+' '+String(desc.todos[k]).replace('.',',')+'%').join(', ');
+  if(!confirm('Desconto de barril encontrado na proposta ('+desc.marca+'): '+txt+'%.'+(outros?'\n(Outros: '+outros+')':'')+'\n\nAtualizar o desconto em Potencial & Negócio?'))return;
+  const r=S.rows.find(x=>String(x.id)===String(id));
+  const d=await post({action:'prospeccao_editar',id:id,campos:{descontoBarril:String(desc.valor)+'%'},pinEditor:U.pin});
+  if(!d||!d.ok){toast((d&&d.erro)||'Não foi possível atualizar o desconto.',true);return}
+  const i=S.rows.findIndex(x=>String(x.id)===String(id));if(i>-1&&d.row)S.rows[i]=d.row;
+  toast('Desconto de barril atualizado para '+txt+'%.');draw();
+}
 async function guardarPropostaFicheiro(input){
   if(!PROP_PENDENTE||!input.files||!input.files[0])return;
   const f=input.files[0],id=PROP_PENDENTE;
   if(f.size>15*1024*1024){toast('O ficheiro não pode ultrapassar 15 MB.',true);input.value='';return;}
   if(!confirm('Guardar “'+f.name.replace(/[<>]/g,'')+'” na pasta partilhada do Google Drive?')){input.value='';return;}
+  const descLido=await lerDescontoBarrilPdf(f);
   try{
     toast('A carregar proposta para o Drive…');
     const base64=await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(String(reader.result).split(',').pop());reader.onerror=()=>reject(new Error('Não foi possível ler o ficheiro.'));reader.readAsDataURL(f);});
@@ -455,6 +478,7 @@ async function guardarPropostaFicheiro(input){
     if(!resp||!resp.ok){toast((resp&&resp.erro)||'Não foi possível guardar a proposta.',true);return;}
     if(resp.row){const ix=S.rows.findIndex(x=>String(x.id)===String(id));if(ix>=0)S.rows[ix]=resp.row;}
     await carregarIdsPropostas();toast('Proposta guardada no Google Drive.');await abrirPropPopup(id);draw();
+    if(descLido)await atualizarDescontoDaProposta(id,descLido);
   }catch(err){toast('Erro ao carregar a proposta: '+(err.message||err),true);}
   finally{input.value='';}
 }
