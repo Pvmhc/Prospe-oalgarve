@@ -313,7 +313,7 @@ textarea{width:100%;margin-top:10px;border:1px solid var(--bd);border-radius:10p
 <div class="ed" id="ed"></div><div id="main"><div id="ls"></div><div id="dp"></div></div></div></div>
 <script>
 const API="https://script.google.com/macros/s/AKfycbwJoWQTZASCbn_nQXDNA3plu-kUa4qwnx24T8Hx2nzjJ8q4jlDFw8HLzd6yQycQlEA/exec";
-const Q=new URLSearchParams(location.search),EMB=Q.get('embed')==='1',$=i=>document.getElementById(i);
+const PICOS_ORIGIN='https://focosemanalpicos.onrender.com',Q=new URLSearchParams(location.search),EMB=Q.get('embed')==='1',$=i=>document.getElementById(i);
 const U={nome:'',perfil:'',pin:''},S={rows:[],tab:'todos',ed:'',e:'abertos',seg:'',dia:'',q:'',t:'',c:'',g:'',o:'',so:'',n:50};
 const iso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 const add=(s,n)=>{const d=new Date(s+'T12:00:00');d.setDate(d.getDate()+n);return iso(d)};
@@ -328,7 +328,7 @@ function mg(a,b){
 }
 const ROT={tipologia:'Tipologia',segmentacao:'Segmentação',marcaAtual:'Marca atual',marcaConquistar:'Marca a conquistar',prevBarril:'Previsão barril',prevGarrafa:'Previsão garrafa',prevLuso:'Previsão Luso',descontoBarril:'Desconto barril',dataAbordagem:'Data abordagem',contactoNome:'Contacto',contacto:'Telefone',email:'Email',motivo:'Motivo',idSAP:'ID SAP',status:'Status Excel'};
 async function post(p){p=Object.assign({utilizador:U.nome,perfil:U.perfil},p);for(let i=0;i<3;i++){try{const r=await fetch(API,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(p)});const d=await r.json();if(d&&d.ok===false&&/ocupado/i.test(d.erro||'')&&i<2){await new Promise(s=>setTimeout(s,800*(i+1)));continue}return d}catch(e){if(i==2)return{ok:false,erro:'sem ligação'};await new Promise(s=>setTimeout(s,800))}}}
-function voltar(){if(EMB)parent.postMessage({tipo:'voltar'},location.origin);else if(Q.get('voltar'))location.href=Q.get('voltar')}
+function voltar(){if(EMB)parent.postMessage({tipo:'voltar'},PICOS_ORIGIN);else if(Q.get('voltar'))location.href=Q.get('voltar')}
 const TIT={entrar:'Introduza o PIN para entrar',criar1:'Cria o teu PIN (4 dígitos)',criar2:'Repete o PIN para confirmar',mudar0:'Introduz o PIN atual',mudar1:'Escolhe o novo PIN',mudar2:'Repete o novo PIN',bloqueado:''};
 const LG={lista:[],fotos:{},nome:'',modo:'bloqueado',buf:'',tmp:'',atual:'',ocup:false,temPin:false,req:0};
 const curto=n=>{const p=String(n).trim().split(/\s+/);return p.length>2?p[0]+' '+p[p.length-1]:p.join(' ')};
@@ -709,7 +709,7 @@ async function importar(i){if(!isAdm()||!i.files[0])return;await xl();const wb=X
  const d=await post({action:'prospeccao_importar',rows:rows,pinEditor:U.pin});if(!d||!d.ok){alert('Erro: '+((d&&d.erro)||'sem ligação'));return}i.value='';carregar()}
 async function exportar(){await xl();const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(S.rows.map(r=>Object.assign({},r,r.detalhe,{detalhe:undefined}))),'Prospeção');XLSX.writeFile(wb,'prospecao_'+iso(new Date())+'.xlsx')}
 (async function(){
- if(EMB){window.addEventListener('message',e=>{if(e.origin!==location.origin)return;const m=e.data||{};if(m.tipo==='sessao'){U.nome=m.utilizador;U.perfil=m.perfil;U.pin=m.pinEditor||'';if(m.rows&&m.rows.length)S.rows=m.rows;iniciar(m.id)}});parent.postMessage({tipo:'pronto'},location.origin);return}
+ if(EMB){window.addEventListener('message',e=>{if(e.origin!==PICOS_ORIGIN)return;const m=e.data||{};if(m.tipo==='sessao'){U.nome=m.utilizador;U.perfil=m.perfil;U.pin=m.pinEditor||'';if(m.rows&&m.rows.length)S.rows=m.rows;iniciar(m.id)}});parent.postMessage({tipo:'pronto'},PICOS_ORIGIN);return}
  $('lgKb').innerHTML=[1,2,3,4,5,6,7,8,9].map(n=>'<button type="button" class="lock-tecla" onclick="lgDig(\''+n+'\')">'+n+'</button>').join('')+'<button type="button" class="lock-tecla vazia" tabindex="-1" aria-hidden="true"></button><button type="button" class="lock-tecla" onclick="lgDig(\'0\')">0</button><button type="button" class="lock-tecla apagar" onclick="lgApagar()" aria-label="Apagar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 5H9l-6 7 6 7h12a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1z"/><line x1="12" y1="9" x2="18" y2="15"/><line x1="18" y1="9" x2="12" y2="15"/></svg></button>';
  $('lg').hidden=false;document.addEventListener('keydown',e=>{if($('lg').hidden||$('lgPassoP').hidden)return;if(/^\d$/.test(e.key))lgDig(e.key);else if(e.key==='Backspace')lgApagar()});
  try{const c=JSON.parse(localStorage.getItem('prospCfg')||'null');if(c&&c.l){LG.lista=c.l;LG.fotos=c.f||{};lgGrid()}}catch(e){}
