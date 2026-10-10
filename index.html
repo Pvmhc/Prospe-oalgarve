@@ -481,9 +481,19 @@ async function associarPropostaDrive(fileId){
 async function abrirPropostaFicheiro(){
   if(!PROP_PENDENTE)return;
   const item=dadosProposta(PROP_PENDENTE);
-  if(!item||!item.url){toast('Não existe uma proposta disponível para este estabelecimento.',true);return;}
-  const win=window.open(item.url,'_blank','noopener');
-  if(!win)location.href=item.url;
+  if(!item||(!item.fileId&&!item.url)){toast('Não existe uma proposta disponível para este estabelecimento.',true);return;}
+  // Usar o endpoint de download do Drive para descarregar o ficheiro, em vez de abrir a pré-visualização.
+  const url=item.fileId
+    ? 'https://drive.google.com/uc?export=download&id='+encodeURIComponent(item.fileId)
+    : item.url.replace(/\/view(?:\?.*)?$/, '/uc?export=download');
+  const link=document.createElement('a');
+  link.href=url;
+  link.target='_blank';
+  link.rel='noopener';
+  link.download=item.nomeFicheiro||'';
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
 }
 async function removerProposta(){
   if(!PROP_PENDENTE)return;
