@@ -275,7 +275,10 @@ textarea{width:100%;margin-top:10px;border:1px solid var(--bd);border-radius:10p
       <div class="prop-box">
         <div style="font-size:26px;margin-bottom:4px">📎</div>
         <div style="font-size:12px;color:var(--mu);margin-bottom:10px">Nenhuma proposta associada ainda.</div>
-        <button type="button" class="btn p" onclick="$('propFicheiro').click()">Carregar Proposta</button>
+        <div class="nv-btns-row" style="justify-content:center;flex-wrap:wrap">
+          <button type="button" class="btn p" onclick="$('propFicheiro').click()">⬆️ Carregar ficheiro</button>
+          <button type="button" class="btn" onclick="abrirSeletorDrive()">📂 Escolher do Drive</button>
+        </div>
       </div>
     </div>
 
@@ -285,12 +288,17 @@ textarea{width:100%;margin-top:10px;border:1px solid var(--bd);border-radius:10p
         <div class="prop-meta" id="propFichMeta">Carregada a 00/00/0000</div>
         <div class="nv-btns-row">
           <button type="button" class="btn bl" onclick="abrirPropostaFicheiro()">👁️ Consultar</button>
-          <button type="button" class="btn" onclick="$('propFicheiro').click()">🔄 Substituir</button>
+          <button type="button" class="btn" onclick="$('propFicheiro').click()">⬆️ Carregar ficheiro</button>
+          <button type="button" class="btn" onclick="abrirSeletorDrive()">📂 Escolher do Drive</button>
         </div>
       </div>
       <button type="button" class="btn rd" style="width:100%;margin-top:6px" onclick="removerProposta()">🗑️ Remover Proposta</button>
     </div>
 
+    <div id="propDriveLista" class="prop-box" hidden style="margin-top:10px;max-height:42vh;overflow:auto">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px"><strong>Escolher uma proposta do Drive</strong><button type="button" class="btn" onclick="fecharSeletorDrive()">Fechar lista</button></div>
+      <div id="propDriveItens"><div class="prop-meta">A carregar ficheiros…</div></div>
+    </div>
     <input type="file" id="propFicheiro" accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg" hidden onchange="guardarPropostaFicheiro(this)">
 
     <div class="nv-btns" style="margin-top:14px">
@@ -362,8 +370,8 @@ async function lgProc(){const p=LG.buf,m=LG.modo,n=LG.nome;if(p.length!==4||LG.o
  if(r&&r.ok){lgOk(n,p,r.perfil);return}if(r&&r.semPin){LG.temPin=false;lgErro(r.erro,'criar1');return}lgErro((r&&r.erro)||'PIN incorreto.')}
 async function iniciar(id){if(!EMB)setTimeout(()=>window.mostrarInstallPrompt&&window.mostrarInstallPrompt(),900);$('lg').hidden=true;$('ap').hidden=false;$('bV').hidden=!(EMB||Q.get('voltar'));S.seg=segDe(new Date());const h=iso(new Date());S.dia=h<=add(S.seg,4)?h:S.seg;S.g=U.nome;
  await dbInit();await carregar();const a=id||Q.get('id');if(a){abrirId(a);if(EMB&&S.rows.find(x=>x.id===a)){POP=true;S.o=a;mostrarPopupMobile()}}}
-async function buscar(){try{const r=await fetch(API+'?tipo=prospeccao&t='+Date.now()),d=await r.json();if(d&&d.ok&&d.rows){S.rows=d.rows;try{localStorage.setItem('prospRows',JSON.stringify(d.rows))}catch(e){}return true}}catch(e){}
- const d=await post({action:'prospeccao_ler'});if(d&&d.ok){S.rows=d.rows||[];return true}return false}
+async function buscar(){try{const r=await fetch(API+'?tipo=prospeccao&t='+Date.now()),d=await r.json();if(d&&d.ok&&d.rows){S.rows=d.rows;carregarIdsPropostas();try{localStorage.setItem('prospRows',JSON.stringify(d.rows))}catch(e){}return true}}catch(e){}
+ const d=await post({action:'prospeccao_ler'});if(d&&d.ok){S.rows=d.rows||[];carregarIdsPropostas();return true}return false}
 async function carregar(){if(S.rows.length)draw();else $('ls').innerHTML='<div class="vz">A carregar…</div>';const ok=await buscar();if(!ok&&!S.rows.length){$('ls').innerHTML='<div class="vz">Não foi possível carregar. Verifica a ligação.</div>';return}draw()}
 function abrirId(id){const r=S.rows.find(x=>x.id===id);if(!r)return;if(U.perfil==='editor')S.g=r.gestor;S.tab='todos';S.so=id;S.o=id;S.q='';S.t='';S.c='';draw()}
 function tab(t){S.tab=t;S.so='';S.o='';S.n=50;draw()}function sem(n){S.seg=add(S.seg,n);S.dia=S.seg;S.o='';draw()}
@@ -392,121 +400,85 @@ function toggleHist(id){
  const e=$('h_'+id);if(e)e.hidden=!e.hidden;
 }
 
-/* Base de Dados IndexedDB para Propostas */
+/* Propostas comerciais guardadas no Google Drive e sincronizadas pela API */
 let DB=null, PROPOSTAS_MAP={};
 function dbInit(){
-  return new Promise(res=>{
-    const req=indexedDB.open('prospecao_db',1);
-    req.onupgradeneeded=e=>{
-      const d=e.target.result;
-      if(!d.objectStoreNames.contains('propostas'))d.createObjectStore('propostas',{keyPath:'id'});
-    };
-    req.onsuccess=e=>{
-      DB=e.target.result;
-      carregarIdsPropostas().then(res);
-    };
-    req.onerror=()=>res();
-  });
+  // Mantém a inicialização inofensiva para versões anteriores; os ficheiros novos já não são guardados localmente.
+  try { if(window.indexedDB) { const req=indexedDB.open('prospecao_db',1); req.onsuccess=e=>{DB=e.target.result}; } } catch(e) {}
+  return Promise.resolve();
 }
 function carregarIdsPropostas(){
-  return new Promise(res=>{
-    if(!DB)return res();
-    const tx=DB.transaction('propostas','readonly');
-    const st=tx.objectStore('propostas');
-    const req=st.openCursor();
-    PROPOSTAS_MAP={};
-    req.onsuccess=e=>{
-      const cur=e.target.result;
-      if(cur){PROPOSTAS_MAP[cur.key]=1;cur.continue();}
-      else res();
-    };
-    req.onerror=()=>res();
-  });
+  PROPOSTAS_MAP={};
+  (S.rows||[]).forEach(r=>{if(r.detalhe&&r.detalhe.propostaUrl)PROPOSTAS_MAP[r.id]=1;});
+  return Promise.resolve();
 }
-
-/* Gestão de Propostas */
 let PROP_PENDENTE=null;
+function dadosProposta(id){const r=(S.rows||[]).find(x=>String(x.id)===String(id));return r&&r.detalhe&&r.detalhe.propostaUrl?{
+  id:r.id,nomeFicheiro:r.detalhe.propostaNome||'proposta',url:r.detalhe.propostaUrl,fileId:r.detalhe.propostaFileId||'',dataCarregamento:r.detalhe.propostaData||'',tamanho:Number(r.detalhe.propostaTamanho||0)
+}:null;}
 async function abrirPropPopup(id){
   PROP_PENDENTE=id;
-  const r=S.rows.find(x=>x.id===id);
+  const r=S.rows.find(x=>String(x.id)===String(id));
   $('propNome').textContent=r?r.nome:'Estabelecimento';
-  const item=await obterProposta(id);
+  const item=dadosProposta(id);
   if(item){
     $('propFichNome').textContent=item.nomeFicheiro;
-    $('propFichMeta').textContent='Carregado a '+item.dataCarregamento+' ('+(item.tamanho/1024).toFixed(1)+' KB)';
-    $('propCorpoVazio').hidden=true;
-    $('propCorpoExistente').hidden=false;
-  } else {
-    $('propCorpoVazio').hidden=false;
-    $('propCorpoExistente').hidden=true;
-  }
+    $('propFichMeta').textContent='Guardada no Google Drive'+(item.dataCarregamento?' · '+item.dataCarregamento:'')+(item.tamanho?' · '+(item.tamanho/1024).toFixed(1)+' KB':'');
+    $('propCorpoVazio').hidden=true;$('propCorpoExistente').hidden=false;
+  } else {$('propCorpoVazio').hidden=false;$('propCorpoExistente').hidden=true;}
   $('propOv').hidden=false;
 }
-function fecharPropPopup(){
-  $('propOv').hidden=true;
-  PROP_PENDENTE=null;
-}
-function obterProposta(id){
-  return new Promise(res=>{
-    if(!DB)return res(null);
-    const tx=DB.transaction('propostas','readonly');
-    const st=tx.objectStore('propostas');
-    const req=st.get(id);
-    req.onsuccess=()=>res(req.result||null);
-    req.onerror=()=>res(null);
-  });
-}
+function fecharPropPopup(){$('propOv').hidden=true;PROP_PENDENTE=null;}
 async function guardarPropostaFicheiro(input){
-  if(!PROP_PENDENTE||!input.files[0])return;
-  const f=input.files[0];
-  const item={
-    id:PROP_PENDENTE,
-    nomeFicheiro:f.name,
-    tipo:f.type||'application/octet-stream',
-    tamanho:f.size,
-    dataCarregamento:new Date().toLocaleDateString('pt-PT')+' '+new Date().toLocaleTimeString('pt-PT').slice(0,5),
-    blob:f
-  };
-  if(DB){
-    const tx=DB.transaction('propostas','readwrite');
-    tx.objectStore('propostas').put(item);
-    tx.oncomplete=()=>{
-      PROPOSTAS_MAP[PROP_PENDENTE]=1;
-      toast('Proposta guardada com sucesso!');
-      abrirPropPopup(PROP_PENDENTE);
-      draw();
-    };
-  }
-  input.value='';
+  if(!PROP_PENDENTE||!input.files||!input.files[0])return;
+  const f=input.files[0],id=PROP_PENDENTE;
+  if(f.size>15*1024*1024){toast('O ficheiro não pode ultrapassar 15 MB.',true);input.value='';return;}
+  if(!confirm('Guardar “'+f.name.replace(/[<>]/g,'')+'” na pasta partilhada do Google Drive?')){input.value='';return;}
+  try{
+    toast('A carregar proposta para o Drive…');
+    const base64=await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(String(reader.result).split(',').pop());reader.onerror=()=>reject(new Error('Não foi possível ler o ficheiro.'));reader.readAsDataURL(f);});
+    const resp=await post({action:'prospeccao_proposta_guardar',id:id,nomeFicheiro:f.name,mimeType:f.type||'application/octet-stream',base64:base64,pinEditor:U.pin});
+    if(!resp||!resp.ok){toast((resp&&resp.erro)||'Não foi possível guardar a proposta.',true);return;}
+    if(resp.row){const ix=S.rows.findIndex(x=>String(x.id)===String(id));if(ix>=0)S.rows[ix]=resp.row;}
+    await carregarIdsPropostas();toast('Proposta guardada no Google Drive.');await abrirPropPopup(id);draw();
+  }catch(err){toast('Erro ao carregar a proposta: '+(err.message||err),true);}
+  finally{input.value='';}
 }
+function fecharSeletorDrive(){ $('propDriveLista').hidden=true; }
+function escaparHtmlDrive(v){return String(v==null?'':v).replace(/[&<>\"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[c]));}
+async function abrirSeletorDrive(){
+  if(!PROP_PENDENTE)return;
+  const box=$('propDriveLista'),itens=$('propDriveItens');
+  box.hidden=false;itens.innerHTML='<div class="prop-meta">A carregar ficheiros da pasta partilhada…</div>';
+  const resp=await post({action:'prospeccao_proposta_listar_drive',id:PROP_PENDENTE,pinEditor:U.pin});
+  if(!resp||!resp.ok){itens.innerHTML='<div class="prop-meta">'+escaparHtmlDrive(resp&&resp.erro||'Não foi possível consultar a pasta do Drive.')+'</div>';return;}
+  if(!resp.files||!resp.files.length){itens.innerHTML='<div class="prop-meta">Não foram encontrados ficheiros nesta pasta.</div>';return;}
+  itens.innerHTML=resp.files.map(f=>'<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 0;border-bottom:1px solid var(--bd)"><div style="min-width:0;flex:1"><div style="font-weight:600;overflow-wrap:anywhere">'+escaparHtmlDrive(f.name)+'</div><div class="prop-meta">'+escaparHtmlDrive(f.updated||'')+(f.size?' · '+(Number(f.size)/1024).toFixed(1)+' KB':'')+'</div></div><button type="button" class="btn bl" onclick="associarPropostaDrive(\''+String(f.id).replace(/[^a-zA-Z0-9_-]/g,'')+'\')">Escolher</button></div>').join('');
+}
+async function associarPropostaDrive(fileId){
+  if(!PROP_PENDENTE||!fileId)return;
+  const id=PROP_PENDENTE;
+  const resp=await post({action:'prospeccao_proposta_associar',id:id,fileId:fileId,pinEditor:U.pin});
+  if(!resp||!resp.ok){toast((resp&&resp.erro)||'Não foi possível associar o ficheiro.',true);return;}
+  if(resp.row){const ix=S.rows.findIndex(x=>String(x.id)===String(id));if(ix>=0)S.rows[ix]=resp.row;}
+  await carregarIdsPropostas();toast('Proposta associada a partir do Google Drive.');await abrirPropPopup(id);draw();
+}
+
 async function abrirPropostaFicheiro(){
   if(!PROP_PENDENTE)return;
-  const item=await obterProposta(PROP_PENDENTE);
-  if(!item||!item.blob){toast('Ficheiro não disponível',true);return;}
-  const url=URL.createObjectURL(item.blob);
-  const win=window.open(url,'_blank');
-  if(!win){
-    const a=document.createElement('a');
-    a.href=url;
-    a.download=item.nomeFicheiro;
-    document.body.appendChild(a);
-    a.click();
-    setTimeout(()=>{a.remove();URL.revokeObjectURL(url)},2000);
-  }
+  const item=dadosProposta(PROP_PENDENTE);
+  if(!item||!item.url){toast('Não existe uma proposta disponível para este estabelecimento.',true);return;}
+  const win=window.open(item.url,'_blank','noopener');
+  if(!win)location.href=item.url;
 }
 async function removerProposta(){
   if(!PROP_PENDENTE)return;
-  if(!confirm('Tem a certeza de que deseja remover esta proposta?'))return;
-  if(DB){
-    const tx=DB.transaction('propostas','readwrite');
-    tx.objectStore('propostas').delete(PROP_PENDENTE);
-    tx.oncomplete=()=>{
-      delete PROPOSTAS_MAP[PROP_PENDENTE];
-      toast('Proposta removida');
-      abrirPropPopup(PROP_PENDENTE);
-      draw();
-    };
-  }
+  if(!confirm('Tem a certeza de que deseja remover a associação desta proposta? Se for um ficheiro carregado especificamente para esta ficha, será enviado para o lixo; se tiver sido escolhido da pasta partilhada, o ficheiro original será mantido.'))return;
+  const id=PROP_PENDENTE;
+  const resp=await post({action:'prospeccao_proposta_remover',id:id,pinEditor:U.pin});
+  if(!resp||!resp.ok){toast((resp&&resp.erro)||'Não foi possível remover a proposta.',true);return;}
+  if(resp.row){const ix=S.rows.findIndex(x=>String(x.id)===String(id));if(ix>=0)S.rows[ix]=resp.row;}
+  await carregarIdsPropostas();toast('Proposta removida.');await abrirPropPopup(id);draw();
 }
 
 /* Modais de Visita e Arquivo */
@@ -602,7 +574,7 @@ function cardView(r){
  const histBtn=ult?'<button type="button" class="btn-hist" onclick="toggleHist('+id+')">'+fv('d',ult.data)+' ▾</button>':'';
  const histBox=hist.length?'<div id="h_'+r.id+'" class="hist-box" hidden>'+hist.map(v=>'<div class="hist-item"><div class="hist-top"><span class="hist-data">'+fv('d',v.data)+'</span><span class="bg e-'+(v.estado||'feita')+'">'+(v.estado==='novavisita'?'nova visita':(v.estado||'feita'))+'</span></div>'+(v.notas?'<div class="hist-notas">'+esc(v.notas)+'</div>':'')+'</div>').join('')+'</div>':'';
  
- const temProp=!!PROPOSTAS_MAP[r.id];
+ const temProp=!!((d&&d.propostaUrl)||PROPOSTAS_MAP[r.id]);
  const bannerProposta = temProp
    ? '<div class="prop-card-banner com">' +
        '<div class="prop-banner-left">' +
@@ -707,7 +679,27 @@ function xl(){return window.XLSX?Promise.resolve():new Promise((ok,er)=>{const t
 async function importar(i){if(!isAdm()||!i.files[0])return;await xl();const wb=XLSX.read(await i.files[0].arrayBuffer()),rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:''});
  if(!rows.length||!rows[0].id||!rows[0].nome){alert('Ficheiro inválido: usa o prospecao_limpo.xlsx.');return}if(!confirm('Importar '+rows.length+' estabelecimentos? As marcações dos gestores mantêm-se.'))return;
  const d=await post({action:'prospeccao_importar',rows:rows,pinEditor:U.pin});if(!d||!d.ok){alert('Erro: '+((d&&d.erro)||'sem ligação'));return}i.value='';carregar()}
-async function exportar(){await xl();const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(S.rows.map(r=>Object.assign({},r,r.detalhe,{detalhe:undefined}))),'Prospeção');XLSX.writeFile(wb,'prospecao_'+iso(new Date())+'.xlsx')}
+async function exportar(){
+ await xl();
+ const wb=XLSX.utils.book_new();
+ const dados=S.rows.map(r=>{
+   const d=r.detalhe||{};
+   const out=Object.assign({},r,d,{detalhe:undefined,detalheJSON:undefined});
+   out['Proposta'] = d.propostaNome||'';
+   out['Link proposta'] = d.propostaUrl||'';
+   out['Data proposta'] = d.propostaData||'';
+   delete out.propostaNome;delete out.propostaUrl;delete out.propostaFileId;delete out.propostaData;delete out.propostaTamanho;
+   return out;
+ });
+ const ws=XLSX.utils.json_to_sheet(dados);
+ const range=XLSX.utils.decode_range(ws['!ref']||'A1:A1');
+ let colLink=-1;
+ for(let c=range.s.c;c<=range.e.c;c++){const cell=ws[XLSX.utils.encode_cell({r:range.s.r,c:c})];if(cell&&cell.v==='Link proposta'){colLink=c;break;}}
+ if(colLink>=0){for(let rr=range.s.r+1;rr<=range.e.r;rr++){const cell=ws[XLSX.utils.encode_cell({r:rr,c:colLink})];if(cell&&cell.v){cell.l={Target:String(cell.v),Tooltip:'Abrir proposta no Google Drive'};cell.v='Consultar proposta';cell.t='s';}}}
+ ws['!cols']=[{wch:18},{wch:30},{wch:22},{wch:28},{wch:22},{wch:18},{wch:18},{wch:18},{wch:18},{wch:18},{wch:18},{wch:45}];
+ XLSX.utils.book_append_sheet(wb,ws,'Prospeção');
+ XLSX.writeFile(wb,'prospecao_'+iso(new Date())+'.xlsx');
+}
 (async function(){
  if(EMB){window.addEventListener('message',e=>{if(e.origin!==PICOS_ORIGIN)return;const m=e.data||{};if(m.tipo==='sessao'){U.nome=m.utilizador;U.perfil=m.perfil;U.pin=m.pinEditor||'';if(m.rows&&m.rows.length)S.rows=m.rows;iniciar(m.id)}});parent.postMessage({tipo:'pronto'},PICOS_ORIGIN);return}
  $('lgKb').innerHTML=[1,2,3,4,5,6,7,8,9].map(n=>'<button type="button" class="lock-tecla" onclick="lgDig(\''+n+'\')">'+n+'</button>').join('')+'<button type="button" class="lock-tecla vazia" tabindex="-1" aria-hidden="true"></button><button type="button" class="lock-tecla" onclick="lgDig(\'0\')">0</button><button type="button" class="lock-tecla apagar" onclick="lgApagar()" aria-label="Apagar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 5H9l-6 7 6 7h12a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1z"/><line x1="12" y1="9" x2="18" y2="15"/><line x1="18" y1="9" x2="12" y2="15"/></svg></button>';
