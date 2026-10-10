@@ -229,7 +229,7 @@ textarea{width:100%;margin-top:10px;border:1px solid var(--bd);border-radius:10p
 .mob-popup-back{width:100%;display:flex;align-items:center;justify-content:flex-start;gap:8px;border:1px solid var(--bd);border-radius:10px;padding:10px 12px;background:var(--card);color:var(--tx);font-size:13.5px;font-weight:700;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.06)}
 .mob-popup-content .c.open{max-height:none!important;overflow:visible!important;padding:10px 8px}
 .mob-popup-content .c.open .dt{display:block}
-@media(min-width:1024px){.mob-popup{display:none!important}}
+@media(min-width:1024px){.mob-popup{display:none!important}.mob-popup.emb:not([hidden]){display:block!important}.mob-popup.emb .mob-popup-top,.mob-popup.emb .mob-popup-content{max-width:900px;margin:0 auto}}
 </style></head><body><div class="ip" id="ipOv" role="dialog" aria-modal="true" aria-label="Instalar app"><div class="ipb"><div class="ipi"><svg viewBox="0 0 62 62" width="62" height="62"><rect width="62" height="62" rx="14" fill="#008200"/><path d="M16 32l10 10 20-20" stroke="white" stroke-width="5" fill="none" stroke-linecap="round"/></svg></div>
 <h3>Instalar a app Prospeção</h3><p>Abre mais depressa, direto do ecrã principal e sem a barra do browser.</p>
 <div class="ips" id="ipIOS" style="display:none"><ol><li>Toca no ícone <b>Partilhar</b> (□ com seta ↑) na barra do Safari</li><li>Escolhe <b>"Adicionar ao Ecrã Principal"</b></li><li>Toca em <b>"Adicionar"</b> no canto superior direito</li></ol></div>
@@ -361,7 +361,7 @@ async function lgProc(){const p=LG.buf,m=LG.modo,n=LG.nome;if(p.length!==4||LG.o
  LG.ocup=true;$('lgTit').textContent='A verificar…';const r=await post({action:'login',nome:n,pin:p});LG.ocup=false;
  if(r&&r.ok){lgOk(n,p,r.perfil);return}if(r&&r.semPin){LG.temPin=false;lgErro(r.erro,'criar1');return}lgErro((r&&r.erro)||'PIN incorreto.')}
 async function iniciar(id){if(!EMB)setTimeout(()=>window.mostrarInstallPrompt&&window.mostrarInstallPrompt(),900);$('lg').hidden=true;$('ap').hidden=false;$('bV').hidden=!(EMB||Q.get('voltar'));S.seg=segDe(new Date());const h=iso(new Date());S.dia=h<=add(S.seg,4)?h:S.seg;S.g=U.nome;
- await dbInit();await carregar();const a=id||Q.get('id');if(a)abrirId(a)}
+ await dbInit();await carregar();const a=id||Q.get('id');if(a){abrirId(a);if(EMB&&S.rows.find(x=>x.id===a)){POP=true;S.o=a;mostrarPopupMobile()}}}
 async function buscar(){try{const r=await fetch(API+'?tipo=prospeccao&t='+Date.now()),d=await r.json();if(d&&d.ok&&d.rows){S.rows=d.rows;try{localStorage.setItem('prospRows',JSON.stringify(d.rows))}catch(e){}return true}}catch(e){}
  const d=await post({action:'prospeccao_ler'});if(d&&d.ok){S.rows=d.rows||[];return true}return false}
 async function carregar(){if(S.rows.length)draw();else $('ls').innerHTML='<div class="vz">A carregar…</div>';const ok=await buscar();if(!ok&&!S.rows.length){$('ls').innerHTML='<div class="vz">Não foi possível carregar. Verifica a ligação.</div>';return}draw()}
@@ -375,12 +375,13 @@ function abrir(id){
  }
  S.o=(DK()||S.o!==id)?id:'';draw();
 }
+let POP=false;
 function mostrarPopupMobile(){
- if(DK())return;
+ if(DK()&&!POP)return;
  const r=S.rows.find(x=>x.id===S.o);if(!r)return;
  let p=$('mobPopup');
- if(!p){p=document.createElement('div');p.id='mobPopup';p.className='mob-popup';p.hidden=true;document.body.appendChild(p)}
- p.innerHTML='<div class="mob-popup-top"><button type="button" class="mob-popup-back" onclick="fecharPopupMobile()">← Voltar</button></div><div class="mob-popup-content">'+card(r)+'</div>';
+ if(!p){p=document.createElement('div');p.id='mobPopup';p.className='mob-popup'+(POP?' emb':'');p.hidden=true;document.body.appendChild(p)}
+ p.innerHTML='<div class="mob-popup-top"><button type="button" class="mob-popup-back" onclick="'+(POP?'voltar()':'fecharPopupMobile()')+'">← '+(POP?'Picos':'Voltar')+'</button></div><div class="mob-popup-content">'+card(r)+'</div>';
  p.hidden=false;document.body.style.overflow='hidden';
 }
 function fecharPopupMobile(){
@@ -680,7 +681,7 @@ async function guardarEd(id){const c={};let n=0;EDITF.forEach(f=>{if(typeof f===
  const i=S.rows.findIndex(r=>r.id===id);if(i>-1)S.rows[i]=d.row;S.ed='';draw()}
 const cl=r=>{const h=card(r);return DK()?h.slice(0,h.indexOf('<div class="dt">'))+'</div>':h};
 function painel(){const p=$('dp');if(!DK()){p.innerHTML='';return}const r=S.rows.find(x=>x.id===S.o);p.innerHTML=r?card(r):'<div class="vz">Seleciona um estabelecimento da lista para ver os detalhes.</div>'}
-function draw(){draw0();painel();const p=$('mobPopup');if(!DK()&&p&&!p.hidden&&S.o)mostrarPopupMobile()}
+function draw(){draw0();painel();const p=$('mobPopup');if((!DK()||POP)&&p&&!p.hidden&&S.o)mostrarPopupMobile()}
 try{matchMedia('(min-width:1024px)').addEventListener('change',()=>{if(!$('ap').hidden)draw()})}catch(e){}
 function fotoDe(n){if(!n)return'';if(!Object.keys(LG.fotos).length){try{const c=JSON.parse(localStorage.getItem('prospCfg')||'null');if(c&&c.f)LG.fotos=c.f}catch(e){}}const k=Object.keys(LG.fotos).find(x=>mg(x,n));return k?LG.fotos[k]:''}
 function avatar(){const n=U.perfil==='editor'?S.g:U.nome,a=$('gAv');if(n==='*'){a.textContent='👥';return}const f=fotoDe(n);a.innerHTML=f?'<img src="'+esc(f)+'" alt="" onerror="this.parentNode.textContent=ini(\''+esc(n).replace(/'/g,"")+'\')">':ini(n)}
