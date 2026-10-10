@@ -445,10 +445,12 @@ async function abrirPropPopup(id){
 }
 function fecharPropPopup(){$('propOv').hidden=true;PROP_PENDENTE=null;}
 /* Lê o desconto de barril gravado pelo gerador de propostas nas propriedades do PDF */
+const MARCAS_BARRIL=[['sagres','Sagres'],['heineken','Heineken'],['bandida','Bandida']];
+const fmtPct=n=>String(n).replace('.',',')+'%';
 function interpretarPropsDesconto(str){
-  const o={};String(str||'').split('|').forEach(x=>{const k=x.split('=');const v=parseFloat(k[1]);if(k[0]&&isFinite(v))o[k[0]]=v});
-  const ordem=['sagres','heineken'].concat(Object.keys(o));
-  const marca=ordem.find(k=>k in o);return marca?{marca:marca,valor:o[marca],todos:o}:null;
+  const o={};String(str||'').split('|').forEach(x=>{const k=x.split('=');if(!k[0])return;const vs=String(k[1]||'').split('/').map(parseFloat).filter(isFinite);if(vs.length)o[k[0]]=vs});
+  const partes=MARCAS_BARRIL.filter(m=>o[m[0]]).map(m=>m[1]+' '+o[m[0]].map(fmtPct).join(' / '));
+  return partes.length?{texto:partes.join(' · '),partes:partes,todos:o}:null;
 }
 function descontoDeBuffer(buf){
   const u8=new Uint8Array(buf);let txt='';
@@ -477,17 +479,14 @@ async function lerDescontoDeDrive(fileId,id){
 }
 async function tratarDescontoLido(id,res){
   if(res.desc){await atualizarDescontoDaProposta(id,res.desc);return}
-  toast(res.lido?'Esta proposta não tem dados de desconto (foi gerada antes da atualização). Preenche o desconto manualmente.':'Não foi possível ler o desconto desta proposta automaticamente.',true);
+  toast(res.lido?'Não foram encontrados descontos de barril Sagres/Heineken/Bandida nesta proposta (ou foi gerada antes da atualização). Preenche manualmente.':'Não foi possível ler o desconto desta proposta automaticamente.',true);
 }
 async function atualizarDescontoDaProposta(id,desc){
-  const txt=String(desc.valor).replace('.',',');
-  const outros=Object.keys(desc.todos).filter(k=>k!==desc.marca).map(k=>k+' '+String(desc.todos[k]).replace('.',',')+'%').join(', ');
-  if(!confirm('Desconto de barril encontrado na proposta ('+desc.marca+'): '+txt+'%.'+(outros?'\n(Outros: '+outros+')':'')+'\n\nAtualizar o desconto em Potencial & Negócio?'))return;
-  const r=S.rows.find(x=>String(x.id)===String(id));
-  const d=await post({action:'prospeccao_editar',id:id,campos:{descontoBarril:String(desc.valor)+'%'},pinEditor:U.pin});
-  if(!d||!d.ok){toast((d&&d.erro)||'Não foi possível atualizar o desconto.',true);return}
+  if(!confirm('Descontos de barril encontrados na proposta:\n'+desc.partes.join('\n')+'\n\nAtualizar o Potencial & Negócio?'))return;
+  const d=await post({action:'prospeccao_editar',id:id,campos:{descontoBarril:desc.texto},pinEditor:U.pin});
+  if(!d||!d.ok){toast((d&&d.erro)||'Não foi possível atualizar os descontos.',true);return}
   const i=S.rows.findIndex(x=>String(x.id)===String(id));if(i>-1&&d.row)S.rows[i]=d.row;
-  toast('Desconto de barril atualizado para '+txt+'%.');draw();
+  toast('Descontos de barril atualizados.');draw();
 }
 async function guardarPropostaFicheiro(input){
   if(!PROP_PENDENTE||!input.files||!input.files[0])return;
@@ -651,6 +650,13 @@ async function marcar(id,e,dataPlaneadaNova,motivoExtra){if(SAVING)return;SAVING
   toast('Guardado: '+(e==='novavisita'?'nova visita':e));draw()}
  catch(x){toast('Erro: '+(x&&x.message||x),true)}
  finally{SAVING=false;bs.forEach(b=>{b.disabled=false})}}
+/* Desconto de barril por marca (ex.: "Sagres 69% · Heineken 57% · Bandida 35% / 30%") */
+function descBarrilHtml(v){
+  v=String(v||'').trim();if(!v)return '—';
+  const rx=/^(.+?)\s+(\d[\d.,]*\s*%.*)$/,partes=v.split(/\s*·\s*/);
+  if(!partes.every(p=>rx.test(p)))return esc(fv('descontoBarril',v));
+  return partes.map(p=>{const m=p.match(rx);return '<div style="display:flex;justify-content:space-between;gap:8px;font-size:12px;line-height:1.4"><i style="font-style:normal;color:var(--mu)">'+esc(m[1])+'</i><u style="text-decoration:none;font-weight:800">'+esc(m[2])+'</u></div>'}).join('');
+}
 function fv(k,v){v=String(v);if(/^\d+\.0$/.test(v))v=v.slice(0,-2);if(/^prev/.test(k)&&/^\d+$/.test(v))return Number(v).toLocaleString('pt-PT');if(k==='descontoBarril'&&/^[0-9.]+$/.test(v)){const p=parseFloat(v);return (p<=1?+(p*100).toFixed(2):p)+'%'}if(/^\d{4}-\d{2}-\d{2}$/.test(v))return v.split('-').reverse().join('/');return v}
 function mat(r){const d=r.detalhe||{},T=[['matConjuntos','Conjuntos'],['matChapeus','Chapéus'],['matFrio','Fridge'],['matMesasAltas','Mesas altas'],['matBidon','Bidon'],['matJardim','Jardim vertical']].filter(x=>d[x[0]]);
  const tx=[['matMarca','Marca'],['matCor','Cor'],['matOutros','Outros']].filter(x=>d[x[0]]).map(x=>x[1]+': '+esc(d[x[0]])).join(' · ');
@@ -720,7 +726,7 @@ function cardView(r){
    '</div>'+
    '<div class="box-painel box-negocio">'+
      '<div class="sec">📊 Potencial & Negócio</div>'+
-     '<div class="g2c"><div class="kp"><span>Previsão</span><b class="'+pc+'">'+(r.previsao?esc(r.previsao):'—')+'</b></div><div class="kp"><span>Desconto barril</span><b>'+(d.descontoBarril?esc(fv('descontoBarril',d.descontoBarril)):'—')+'</b></div></div>'+
+     '<div class="g2c"><div class="kp"><span>Previsão</span><b class="'+pc+'">'+(r.previsao?esc(r.previsao):'—')+'</b></div><div class="kp"><span>Desconto barril</span><div>'+descBarrilHtml(d.descontoBarril)+'</div></div></div>'+
      litragemBloco+
    '</div>'+
  '</div>'+
@@ -738,7 +744,7 @@ function cardView(r){
 
 const EDITF=['Identificação',['nome','Nome','t','f'],['idSAP','Nº SAP','n'],['localidade','Localidade','t'],['gestor','Gestor','s'],['tipoVisita','Tipo de visita','s:Prospeção|Reconquista|Execução Barril'],['orla','Zona orla','s:Sim|Não'],['previsao','Previsão de conquista','s:|Quente|Morno|Frio'],
  'Cerveja',['marcaAtual','Marca atual','t'],['marcaConquistar','Marca a conquistar','t'],
- 'Litragem e desconto',['prevBarril','Barril (L)','n'],['prevGarrafa','Garrafa (L)','n'],['prevLuso','Luso (L)','n'],['descontoBarril','Desconto barril (%)','p'],
+ 'Litragem e desconto',['prevBarril','Barril (L)','n'],['prevGarrafa','Garrafa (L)','n'],['prevLuso','Luso (L)','n'],['descontoBarril','Desconto barril','p'],
  'Material necessário',['matConjuntos','Conjuntos','n'],['matChapeus','Chapéus','n'],['matFrio','Fridge','n'],['matMesasAltas','Mesas altas','n'],['matBidon','Bidon','n'],['matJardim','Jardim vertical','n'],['matMarca','Marca','t'],['matCor','Cor','t'],['matOutros','Outros','t','f'],
  'Dados',['tipologia','Tipologia','t'],['segmentacao','Segmentação','t'],['dataAbordagem','Data de abordagem','d'],['contactoNome','Contacto','t'],['contacto','Telefone','n'],['email','Email','t','f'],['motivo','Motivo','t','f']];
 function enorm(t,v){v=String(v||'').trim();if(t==='n')return v.replace(/\.0$/,'').replace(/\D/g,'');if(t==='p')return v?fv('descontoBarril',v):'';if(t==='d')return /^\d{4}-\d{2}-\d{2}$/.test(v)?v:'';return v}
