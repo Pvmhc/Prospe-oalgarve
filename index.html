@@ -463,9 +463,9 @@ async function lerDescontoBarrilPdf(f){
 }
 /* Proposta escolhida do Drive: o ficheiro é lido pelo Apps Script (ação prospeccao_proposta_desconto);
    se essa ação ainda não existir, tenta descarregar o PDF diretamente no browser. */
-async function lerDescontoDeDrive(fileId){
+async function lerDescontoDeDrive(fileId,id){
   try{
-    const r=await post({action:'prospeccao_proposta_desconto',fileId:fileId,pinEditor:U.pin});
+    const r=await post({action:'prospeccao_proposta_desconto',id:id,fileId:fileId,pinEditor:U.pin});
     if(r&&r.ok&&typeof r.props==='string')return {lido:true,desc:interpretarPropsDesconto(r.props)};
   }catch(e){}
   try{
@@ -555,7 +555,7 @@ async function associarPropostaDrive(fileId){
   if(!resp||!resp.ok){toast((resp&&resp.erro)||'Não foi possível associar o ficheiro.',true);return;}
   if(resp.row){const ix=S.rows.findIndex(x=>String(x.id)===String(id));if(ix>=0)S.rows[ix]=resp.row;}
   await carregarIdsPropostas();toast('Proposta associada a partir do Google Drive.');await abrirPropPopup(id);draw();
-  await tratarDescontoLido(id,await lerDescontoDeDrive(fileId));
+  await tratarDescontoLido(id,await lerDescontoDeDrive(fileId,id));
 }
 
 async function abrirPropostaFicheiro(){
