@@ -101,6 +101,20 @@ textarea{width:100%;margin-top:10px;border:1px solid var(--bd);border-radius:10p
 .prop-banner-txt span{display:block;font-size:10.5px;color:var(--mu)}
 .prop-banner-btn{flex:none;font-size:11.5px;padding:5px 9px;border-radius:7px;font-weight:700}
 
+
+/* Modal Proposta Comercial — ações claras e hierarquia visual */
+.prop-modal-title{display:flex;align-items:center;gap:9px}
+.prop-title-icon,.prop-empty-icon{display:inline-flex;align-items:center;justify-content:center;flex:none}
+.prop-title-icon svg{width:23px;height:23px;stroke:var(--p);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.prop-empty-icon{width:42px;height:42px;border-radius:12px;background:var(--blb);margin-bottom:8px}
+.prop-empty-icon svg{width:23px;height:23px;stroke:var(--bl);fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.prop-consultar{width:100%;min-height:54px;display:flex;align-items:center;justify-content:center;gap:10px;margin:12px 0 9px;font-size:15px;font-weight:750;border-radius:12px}
+.prop-consultar svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.prop-actions-secondary{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:9px}
+.prop-action{min-height:58px;display:flex;align-items:center;justify-content:center;gap:7px;padding:9px 8px;font-size:12px;line-height:1.25;white-space:normal}
+.prop-action svg{width:19px;height:19px;flex:none;stroke:var(--p);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+@media(max-width:380px){.prop-action{flex-direction:column;gap:4px;min-height:62px}.prop-action span{text-align:center}}
+
 .prop-box{background:var(--bg);border:1px dashed var(--bd);border-radius:12px;padding:12px;text-align:center;margin:10px 0}
 .prop-info{font-size:12.5px;font-weight:600;color:var(--tx);margin-bottom:8px;word-break:break-all}
 .prop-meta{font-size:11px;color:var(--mu);margin-bottom:8px}
@@ -268,16 +282,16 @@ textarea{width:100%;margin-top:10px;border:1px solid var(--bd);border-radius:10p
 <!-- Modal Proposta Comercial -->
 <div class="nv-overlay" id="propOv" hidden>
   <div class="nv-card">
-    <h3>📄 Proposta Comercial</h3>
+    <h3 class="prop-modal-title"><span class="prop-title-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h8"/></svg></span>Proposta Comercial</h3>
     <p id="propNome">Estabelecimento</p>
     
     <div id="propCorpoVazio">
       <div class="prop-box">
-        <div style="font-size:26px;margin-bottom:4px">📎</div>
+        <div class="prop-empty-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h5"/></svg></div>
         <div style="font-size:12px;color:var(--mu);margin-bottom:10px">Nenhuma proposta associada ainda.</div>
-        <div class="nv-btns-row" style="justify-content:center;flex-wrap:wrap">
-          <button type="button" class="btn p" onclick="$('propFicheiro').click()">⬆️ Carregar ficheiro</button>
-          <button type="button" class="btn" onclick="abrirSeletorDrive()">📂 Escolher do Drive</button>
+        <div class="prop-actions-secondary">
+          <button type="button" class="btn prop-action" onclick="$('propFicheiro').click()"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V4m-5 5 5-5 5 5M4 16v4h16v-4"/></svg><span>Carregar ficheiro</span></button>
+          <button type="button" class="btn prop-action" onclick="abrirSeletorDrive()"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h5l2 2h7a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M3 10h18"/></svg><span>Escolher do Drive</span></button>
         </div>
       </div>
     </div>
@@ -286,10 +300,10 @@ textarea{width:100%;margin-top:10px;border:1px solid var(--bd);border-radius:10p
       <div class="prop-box">
         <div class="prop-info" id="propFichNome">proposta.pdf</div>
         <div class="prop-meta" id="propFichMeta">Carregada a 00/00/0000</div>
-        <div class="nv-btns-row">
-          <button type="button" class="btn bl" onclick="abrirPropostaFicheiro()">👁️ Consultar</button>
-          <button type="button" class="btn" onclick="$('propFicheiro').click()">⬆️ Carregar ficheiro</button>
-          <button type="button" class="btn" onclick="abrirSeletorDrive()">📂 Escolher do Drive</button>
+        <button type="button" class="btn bl prop-consultar" onclick="abrirPropostaFicheiro()"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg><span>Consultar proposta</span></button>
+        <div class="prop-actions-secondary">
+          <button type="button" class="btn prop-action" onclick="$('propFicheiro').click()"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V4m-5 5 5-5 5 5M4 16v4h16v-4"/></svg><span>Carregar ficheiro</span></button>
+          <button type="button" class="btn prop-action" onclick="abrirSeletorDrive()"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h5l2 2h7a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M3 10h18"/></svg><span>Escolher do Drive</span></button>
         </div>
       </div>
       <button type="button" class="btn rd" style="width:100%;margin-top:6px" onclick="removerProposta()">🗑️ Remover Proposta</button>
