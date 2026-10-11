@@ -244,6 +244,7 @@ textarea{width:100%;margin-top:10px;border:1px solid var(--bd);border-radius:10p
 .mob-popup-content .c.open{max-height:none!important;overflow:visible!important;padding:10px 8px}
 .mob-popup-content .c.open .dt{display:block}
 @media(min-width:1024px){.mob-popup{display:none!important}.mob-popup.emb:not([hidden]){display:block!important}.mob-popup.emb .mob-popup-top,.mob-popup.emb .mob-popup-content{max-width:900px;margin:0 auto}}
+.etiqueta-novo{display:inline-flex;align-items:center;margin-top:5px;padding:3px 8px;border-radius:6px;background:#fff0c2;color:#855500;border:1px solid #e9c768;font-size:10px;font-weight:850;letter-spacing:.7px}
 </style></head><body><div class="ip" id="ipOv" role="dialog" aria-modal="true" aria-label="Instalar app"><div class="ipb"><div class="ipi"><svg viewBox="0 0 62 62" width="62" height="62"><rect width="62" height="62" rx="14" fill="#008200"/><path d="M16 32l10 10 20-20" stroke="white" stroke-width="5" fill="none" stroke-linecap="round"/></svg></div>
 <h3>Instalar a app Prospeção</h3><p>Abre mais depressa, direto do ecrã principal e sem a barra do browser.</p>
 <div class="ips" id="ipIOS" style="display:none"><ol><li>Toca no ícone <b>Partilhar</b> (□ com seta ↑) na barra do Safari</li><li>Escolhe <b>"Adicionar ao Ecrã Principal"</b></li><li>Toca em <b>"Adicionar"</b> no canto superior direito</li></ol></div>
@@ -685,6 +686,7 @@ function getHistorico(r){
 }
 
 function cardView(r){
+ const mostrarNovo=!!((r.detalhe||{}).novoImportado)&&!['feita','conquistado','novavisita','recusou'].includes(r.estado);
  const o=S.o===r.id,tp=r.tipoVisita==='Execução Barril'?'Execução':r.tipoVisita,d=r.detalhe||{},mp='https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(r.nome+' '+r.localidade+' Portugal'),id="'"+r.id+"'";
  const pc={quente:'q',morno:'m',frio:'f'}[nz(r.previsao)]||'';
  const num=v=>{const n=Number(String(v||'').replace(/\.0$/,'').replace(/\s/g,''));return isFinite(n)&&n>0?n:0};
