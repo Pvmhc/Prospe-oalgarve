@@ -597,9 +597,12 @@ function abrirNvPopup(id){
   const r=S.rows.find(x=>x.id===id);
   NV_PENDENTE=id;
   $('nvNome').textContent=r?'Estabelecimento: '+r.nome:'Escolhe a data pretendida:';
-  $('nvData').value=add(iso(new Date()),7);
+  $('nvData').min=iso(new Date());
+  $('nvData').value=diaUtilNv_(add(iso(new Date()),7));
   $('nvOv').hidden=false;
 }
+// Fins de semana não têm separador no plano nem nos Picos: passa para a segunda-feira seguinte.
+function diaUtilNv_(s){const w=new Date(s+'T12:00:00').getDay();return w===6?add(s,2):w===0?add(s,1):s}
 function fecharNvPopup(){
   $('nvOv').hidden=true;
   NV_PENDENTE=null;
@@ -609,10 +612,14 @@ function confirmarNovaVisita(auto){
   const id=NV_PENDENTE;
   let dNova=null;
   if(auto){
-    dNova=add(iso(new Date()),7);
+    dNova=diaUtilNv_(add(iso(new Date()),7));
   }else{
     const val=$('nvData').value;
-    dNova=val||add(iso(new Date()),7);
+    if(!val){alert('Escolhe uma data.');return}
+    const w=new Date(val+'T12:00:00').getDay();
+    if(w===0||w===6){alert('Escolhe um dia útil (segunda a sexta). Os fins de semana não aparecem no plano nem nos Picos.');return}
+    if(val<iso(new Date())){alert('Escolhe uma data a partir de hoje.');return}
+    dNova=val;
   }
   fecharNvPopup();
   marcar(id,'novavisita',dNova);
