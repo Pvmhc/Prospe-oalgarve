@@ -343,10 +343,17 @@ const segDe=d=>{d=new Date(d);d.setDate(d.getDate()-((d.getDay()+6)%7));return i
 const nz=s=>String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[.,]/g,'').trim();
 const esc=t=>String(t==null?'':t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 function mg(a,b){
-  const x=nz(a).split(/\s+/),y=nz(b).split(/\s+/);
-  if(!x[0]||!y[0]||x[0]!==y[0])return false;
-  const l=x[x.length-1],m=y[y.length-1];
-  return l===m||(l.length===1&&m[0]===l)||(m.length===1&&l[0]===m);
+  // Compara nomes de pessoas tolerando abreviaturas ("V. Catarino", "Vitor C.", "Vitor M. H. Catarino"),
+  // nomes do meio em falta, ordem trocada ("Catarino, Vitor"), partículas (de/da/do) e pequenas gralhas.
+  const PART=['de','da','do','das','dos','e'];
+  const tk=s=>String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim().split(' ').filter(t=>t&&PART.indexOf(t)<0);
+  const lev=(p,q)=>{let r=[];for(let j=0;j<=q.length;j++)r[j]=j;for(let i=1;i<=p.length;i++){let c=[i];for(let j=1;j<=q.length;j++)c[j]=Math.min(r[j]+1,c[j-1]+1,r[j-1]+(p[i-1]===q[j-1]?0:1));r=c}return r[q.length]};
+  const ig=(p,q)=>{if(p===q)return true;if(p.length===1||q.length===1)return p[0]===q[0];const n=Math.max(p.length,q.length);return n>=5&&lev(p,q)<=(n>=7?2:1)};
+  const x=tk(a),y=tk(b);if(!x.length||!y.length)return false;
+  const s=x.length<=y.length?x:y,l=x.length<=y.length?y:x;
+  if(s.length===1)return s[0].length>1&&(ig(s[0],l[0])||ig(s[0],l[l.length-1]));
+  const usados=[];
+  return s.every(t=>{const i=l.findIndex((u,k)=>usados.indexOf(k)<0&&ig(t,u));if(i<0)return false;usados.push(i);return true});
 }
 const ROT={tipologia:'Tipologia',segmentacao:'Segmentação',marcaAtual:'Marca atual',marcaConquistar:'Marca a conquistar',prevBarril:'Previsão barril',prevGarrafa:'Previsão garrafa',prevLuso:'Previsão Luso',descontoBarril:'Desconto barril',dataAbordagem:'Data abordagem',contactoNome:'Contacto',contacto:'Telefone',email:'Email',motivo:'Motivo',idSAP:'ID SAP',status:'Status Excel'};
 async function post(p){p=Object.assign({utilizador:U.nome,perfil:U.perfil},p);for(let i=0;i<3;i++){try{const r=await fetch(API,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(p)});const d=await r.json();if(d&&d.ok===false&&/ocupado/i.test(d.erro||'')&&i<2){await new Promise(s=>setTimeout(s,800*(i+1)));continue}return d}catch(e){if(i==2)return{ok:false,erro:'sem ligação'};await new Promise(s=>setTimeout(s,800))}}}
@@ -382,7 +389,7 @@ async function lgProc(){const p=LG.buf,m=LG.modo,n=LG.nome;if(p.length!==4||LG.o
   if(r&&r.ok){lgModo('entrar');lgMsg('PIN alterado. Entra com o novo PIN.');return}lgErro((r&&r.erro)||'Não foi possível mudar o PIN.','mudar0');return}
  LG.ocup=true;$('lgTit').textContent='A verificar…';const r=await post({action:'login',nome:n,pin:p});LG.ocup=false;
  if(r&&r.ok){lgOk(n,p,r.perfil);return}if(r&&r.semPin){LG.temPin=false;lgErro(r.erro,'criar1');return}lgErro((r&&r.erro)||'PIN incorreto.')}
-async function iniciar(id){if(!EMB)setTimeout(()=>window.mostrarInstallPrompt&&window.mostrarInstallPrompt(),900);$('lg').hidden=true;$('ap').hidden=false;$('bV').hidden=!(EMB||Q.get('voltar'));S.seg=segDe(new Date());const h=iso(new Date());S.dia=h<=add(S.seg,4)?h:S.seg;S.g=U.nome;
+async function iniciar(id){if(!EMB)setTimeout(()=>window.mostrarInstallPrompt&&window.mostrarInstallPrompt(),900);$('lg').hidden=true;$('ap').hidden=false;$('bV').hidden=!(EMB||Q.get('voltar'));S.seg=segDe(new Date());if([0,6].indexOf(new Date().getDay())>-1)S.seg=add(S.seg,7);const h=iso(new Date());S.dia=(h>=S.seg&&h<=add(S.seg,4))?h:S.seg;S.g=U.nome;
  await dbInit();await carregar();const a=id||Q.get('id');if(a){abrirId(a);if(EMB&&S.rows.find(x=>x.id===a)){POP=true;S.o=a;mostrarPopupMobile()}}}
 async function buscar(){try{const r=await fetch(API+'?tipo=prospeccao&t='+Date.now()),d=await r.json();if(d&&d.ok&&d.rows){S.rows=d.rows;carregarIdsPropostas();try{localStorage.setItem('prospRows',JSON.stringify(d.rows))}catch(e){}return true}}catch(e){}
  const d=await post({action:'prospeccao_ler'});if(d&&d.ok){S.rows=d.rows||[];carregarIdsPropostas();return true}return false}
@@ -771,7 +778,7 @@ function draw0(){const ed=U.perfil==='editor',gs=[...new Set(S.rows.map(r=>r.ges
  $('gW').hidden=false;gsel.disabled=!ed;if(!ed){gsel.innerHTML='<option>'+esc(U.nome)+'</option>'}if(ed){gsel.innerHTML='<option value="*"'+(S.g==='*'?' selected':'')+'>Todos</option>'+gs.map(g=>'<option'+(mg(g,S.g)?' selected':'')+'>'+esc(g)+'</option>').join('');}
  avatar();const all=ed&&S.g==='*',m=all?S.rows.slice():S.rows.filter(r=>mg(r.gestor,ed?(gs.find(g=>mg(g,S.g))||S.g):U.nome));
  $('tS').classList.toggle('on',S.tab==='semana');$('tT').classList.toggle('on',S.tab==='todos');$('vS').hidden=S.tab!=='semana';$('vT').hidden=S.tab!=='todos';
- $('ed').innerHTML=isAdm()?'<button class="btn" onclick="gerar()">Gerar semana</button><button class="btn" onclick="$(\'fx\').click()">Importar Excel</button><button class="btn" onclick="exportar()">Descarregar Excel</button><input id="fx" type="file" accept=".xlsx" hidden onchange="importar(this)">':'<button class="btn" onclick="exportar()">Descarregar Excel</button>';
+ $('ed').innerHTML=isAdm()?'<button class="btn" onclick="gerar()">Gerar semana</button><button class="btn" onclick="gerar(4)">Gerar 4 semanas</button><button class="btn" onclick="$(\'fx\').click()">Importar Excel</button><button class="btn" onclick="exportar()">Descarregar Excel</button><input id="fx" type="file" accept=".xlsx" hidden onchange="importar(this)">':'<button class="btn" onclick="exportar()">Descarregar Excel</button>';
  let l;if(S.tab==='semana'){const d0=new Date(S.seg+'T12:00:00'),d4=new Date(add(S.seg,4)+'T12:00:00'),t=new Date(Date.UTC(d0.getFullYear(),d0.getMonth(),d0.getDate()));t.setUTCDate(t.getUTCDate()+4-(t.getUTCDay()||7));const w=Math.ceil(((t-new Date(Date.UTC(t.getUTCFullYear(),0,1)))/864e5+1)/7);
   $('sT').textContent='Semana '+w+' · '+d0.getDate()+'–'+d4.getDate()+'/'+(d4.getMonth()+1);
   $('ds').innerHTML=[0,1,2,3,4].map(i=>{const d=add(S.seg,i);return '<button class="dia'+(d===S.dia?' on':'')+'" onclick="S.dia=\''+d+'\';S.o=\'\';draw()">'+['Seg','Ter','Qua','Qui','Sex'][i]+'<small>'+m.filter(r=>r.dataPlaneada===d).length+' visitas</small></button>'}).join('');
@@ -784,7 +791,7 @@ function draw0(){const ed=U.perfil==='editor',gs=[...new Set(S.rows.map(r=>r.ges
   l=S.so?m.filter(r=>r.id===S.so):m.filter(r=>fl(r,'')).sort((a,b)=>a.localidade.localeCompare(b.localidade,'pt')||a.nome.localeCompare(b.nome,'pt'));
   $('ls').innerHTML=(S.so?'<button class="btn" onclick="S.so=\'\';S.o=\'\';draw()">Ver todos</button>':'<div class="sb">'+l.length+' estabelecimentos</div>')+l.slice(0,S.n).map(cl).join('')+(l.length>S.n?'<button class="btn" style="width:100%" onclick="S.n+=50;draw()">Mostrar mais</button>':'')}}
 $('gSel').onchange=function(){S.g=this.value;S.o='';draw()};
-async function gerar(){if(!isAdm())return;if(!confirm('Gerar o plano da semana '+S.seg+' para todos os gestores?'))return;const d=await post({action:'prospeccao_gerar',segunda:S.seg,pinEditor:U.pin});if(!d||!d.ok){alert('Erro: '+((d&&d.erro)||'sem ligação'));return}carregar()}
+async function gerar(n){n=n||1;if(!isAdm())return;if(add(S.seg,4)<iso(new Date())&&!confirm('A semana '+S.seg+' já passou: as visitas geradas não vão aparecer nos Picos. Gerar mesmo assim?'))return;if(!confirm('Gerar o plano da semana '+S.seg+(n>1?' e das '+(n-1)+' seguintes':'')+' para todos os gestores?'))return;const d=await post({action:'prospeccao_gerar',segunda:S.seg,semanas:n,pinEditor:U.pin});if(!d||!d.ok){alert('Erro: '+((d&&d.erro)||'sem ligação'));return}carregar()}
 function xl(){return window.XLSX?Promise.resolve():new Promise((ok,er)=>{const t=document.createElement('script');t.src='https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';t.onload=ok;t.onerror=er;document.head.appendChild(t)})}
 async function importar(i){if(!isAdm()||!i.files[0])return;await xl();const wb=XLSX.read(await i.files[0].arrayBuffer()),rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:''});
  if(!rows.length||!rows[0].id||!rows[0].nome){alert('Ficheiro inválido: usa o prospecao_limpo.xlsx.');return}if(!confirm('Importar '+rows.length+' estabelecimentos? As marcações dos gestores mantêm-se.'))return;
