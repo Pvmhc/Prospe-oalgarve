@@ -801,7 +801,7 @@ $('gSel').onchange=function(){S.g=this.value;S.o='';draw()};
 async function gerar(n){n=n||1;if(!isAdm())return;if(add(S.seg,4)<iso(new Date())&&!confirm('A semana '+S.seg+' já passou: as visitas geradas não vão aparecer nos Picos. Gerar mesmo assim?'))return;if(!confirm('Gerar o plano da semana '+S.seg+(n>1?' e das '+(n-1)+' seguintes':'')+' para todos os gestores?'))return;const d=await post({action:'prospeccao_gerar',segunda:S.seg,semanas:n,pinEditor:U.pin});if(!d||!d.ok){alert('Erro: '+((d&&d.erro)||'sem ligação'));return}carregar()}
 function xl(){return window.XLSX?Promise.resolve():new Promise((ok,er)=>{const t=document.createElement('script');t.src='https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';t.onload=ok;t.onerror=er;document.head.appendChild(t)})}
 async function importar(i){if(!isAdm()||!i.files[0])return;await xl();const wb=XLSX.read(await i.files[0].arrayBuffer()),rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:''});
- if(!rows.length||!rows[0].id||!rows[0].nome){alert('Ficheiro inválido: usa o prospecao_limpo.xlsx.');return}if(!confirm('Importar '+rows.length+' estabelecimentos? As marcações dos gestores mantêm-se.'))return;
+ if(!rows.length||!rows[0].nome){alert('Ficheiro inválido: é necessária a coluna nome.');return}if(!confirm('Atualizar '+rows.length+' estabelecimentos? Campos vazios, propostas, histórico e marcações existentes serão preservados.'))return;
  const d=await post({action:'prospeccao_importar',rows:rows,pinEditor:U.pin});if(!d||!d.ok){alert('Erro: '+((d&&d.erro)||'sem ligação'));return}i.value='';carregar()}
 async function exportar(){
  await xl();
