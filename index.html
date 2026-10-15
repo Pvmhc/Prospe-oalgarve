@@ -337,7 +337,7 @@ textarea{width:100%;margin-top:10px;border:1px solid var(--bd);border-radius:10p
 <script>
 const API="https://script.google.com/macros/s/AKfycbwJoWQTZASCbn_nQXDNA3plu-kUa4qwnx24T8Hx2nzjJ8q4jlDFw8HLzd6yQycQlEA/exec";
 const PICOS_ORIGIN='https://focosemanalpicos.onrender.com',Q=new URLSearchParams(location.search),EMB=Q.get('embed')==='1',$=i=>document.getElementById(i);
-const U={nome:'',perfil:'',pin:''},S={rows:[],tab:'todos',ed:'',e:'abertos',seg:'',dia:'',q:'',t:'',c:'',g:'',o:'',so:'',n:50};
+const U={nome:'',perfil:'',pin:'',token:''},S={rows:[],tab:'todos',ed:'',e:'abertos',seg:'',dia:'',q:'',t:'',c:'',g:'',o:'',so:'',n:50};
 const iso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 const add=(s,n)=>{const d=new Date(s+'T12:00:00');d.setDate(d.getDate()+n);return iso(d)};
 const segDe=d=>{d=new Date(d);d.setDate(d.getDate()-((d.getDay()+6)%7));return iso(d)};
@@ -357,7 +357,17 @@ function mg(a,b){
   return s.every(t=>{const i=l.findIndex((u,k)=>usados.indexOf(k)<0&&ig(t,u));if(i<0)return false;usados.push(i);return true});
 }
 const ROT={tipologia:'Tipologia',segmentacao:'Segmentação',marcaAtual:'Marca atual',marcaConquistar:'Marca a conquistar',prevBarril:'Previsão barril',prevGarrafa:'Previsão garrafa',prevLuso:'Previsão Luso',descontoBarril:'Desconto barril',dataAbordagem:'Data abordagem',contactoNome:'Contacto',contacto:'Telefone',email:'Email',motivo:'Motivo',idSAP:'ID SAP',status:'Status Excel'};
-async function post(p){p=Object.assign({utilizador:U.nome,perfil:U.perfil},p);for(let i=0;i<3;i++){try{const r=await fetch(API,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(p)});const d=await r.json();if(d&&d.ok===false&&/ocupado/i.test(d.erro||'')&&i<2){await new Promise(s=>setTimeout(s,800*(i+1)));continue}return d}catch(e){if(i==2)return{ok:false,erro:'sem ligação'};await new Promise(s=>setTimeout(s,800))}}}
+async function post(p){p=Object.assign({utilizador:U.nome,perfil:U.perfil,token:U.token},p);for(let i=0;i<3;i++){try{const r=await fetch(API,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(p)});const d=await r.json();if(d&&d.sessaoInvalida){sessaoExpirou();return d}if(d&&d.ok===false&&/ocupado/i.test(d.erro||'')&&i<2){await new Promise(s=>setTimeout(s,800*(i+1)));continue}return d}catch(e){if(i==2)return{ok:false,erro:'sem ligação'};await new Promise(s=>setTimeout(s,800))}}}
+// Sessão terminada no servidor (24 h, PIN mudado...): volta ao ecrã de entrada.
+function sessaoExpirou(){
+ U.token='';U.pin='';
+ if(EMB){parent.postMessage({tipo:'sessaoExpirada'},PICOS_ORIGIN);return}
+ if($('ap').hidden)return;
+ U.nome='';U.perfil='';
+ const p=$('mobPopup');if(p)p.hidden=true;document.body.style.overflow='';
+ $('ap').hidden=true;$('lg').hidden=false;lgVoltar();
+ $('lgErroG').textContent='Sessão expirada. Toca na tua foto e entra com o PIN.';
+}
 function voltar(){if(EMB)parent.postMessage({tipo:'voltar'},PICOS_ORIGIN);else if(Q.get('voltar'))location.href=Q.get('voltar')}
 const TIT={entrar:'Introduza o PIN para entrar',criar1:'Cria o teu PIN (4 dígitos)',criar2:'Repete o PIN para confirmar',mudar0:'Introduz o PIN atual',mudar1:'Escolhe o novo PIN',mudar2:'Repete o novo PIN',bloqueado:''};
 const LG={lista:[],fotos:{},nome:'',modo:'bloqueado',buf:'',tmp:'',atual:'',ocup:false,temPin:false,req:0};
@@ -379,20 +389,20 @@ async function lgEsc(i){const n=LG.lista[i];if(!n)return;if(KN[n]){LG.nome=n;LG.
 function lgDig(d){if(LG.ocup||LG.modo==='bloqueado'||LG.buf.length>=4)return;lgMsg('');LG.buf+=d;lgDots();if(LG.buf.length===4)setTimeout(lgProc,120)}
 function lgApagar(){if(LG.ocup)return;LG.buf=LG.buf.slice(0,-1);lgDots()}
 function lgErro(m,prox){const d=$('lgDots');d.classList.add('erro');lgMsg(m);setTimeout(()=>{d.classList.remove('erro');lgModo(prox||LG.modo)},400)}
-function lgOk(n,p,perfil){KN[n]=1;try{localStorage.setItem('prospPin',JSON.stringify(KN))}catch(e){}U.nome=n;U.perfil=perfil;U.pin=perfil==='editor'?p:'';iniciar()}
+function lgOk(n,p,perfil,token){U.token=token||'';KN[n]=1;try{localStorage.setItem('prospPin',JSON.stringify(KN))}catch(e){}U.nome=n;U.perfil=perfil;U.pin=perfil==='editor'?p:'';iniciar()}
 async function lgProc(){const p=LG.buf,m=LG.modo,n=LG.nome;if(p.length!==4||LG.ocup)return;
  if(m==='criar1'){LG.tmp=p;lgModo('criar2');return}
  if(m==='criar2'){if(p!==LG.tmp){LG.tmp='';lgErro('Os PINs não coincidem. Tenta de novo.','criar1');return}LG.ocup=true;$('lgTit').textContent='A guardar…';const r=await post({action:'criar_pin',nome:n,pin:p});LG.ocup=false;LG.tmp='';
-  if(r&&r.ok){lgOk(n,p,r.perfil);return}if(r&&r.jaTemPin){LG.temPin=true;lgErro(r.erro,'entrar');return}lgErro((r&&r.erro)||'Não foi possível criar o PIN.','criar1');return}
+  if(r&&r.ok){lgOk(n,p,r.perfil,r.token);return}if(r&&r.jaTemPin){LG.temPin=true;lgErro(r.erro,'entrar');return}lgErro((r&&r.erro)||'Não foi possível criar o PIN.','criar1');return}
  if(m==='mudar0'){LG.atual=p;lgModo('mudar1');return}
  if(m==='mudar1'){if(p===LG.atual){lgErro('O novo PIN tem de ser diferente do atual.','mudar1');return}LG.tmp=p;lgModo('mudar2');return}
  if(m==='mudar2'){if(p!==LG.tmp){LG.tmp='';lgErro('Os PINs não coincidem. Tenta de novo.','mudar1');return}LG.ocup=true;$('lgTit').textContent='A guardar…';const r=await post({action:'mudar_pin',nome:n,pinAtual:LG.atual,pinNovo:p});LG.ocup=false;LG.tmp=LG.atual='';
   if(r&&r.ok){lgModo('entrar');lgMsg('PIN alterado. Entra com o novo PIN.');return}lgErro((r&&r.erro)||'Não foi possível mudar o PIN.','mudar0');return}
  LG.ocup=true;$('lgTit').textContent='A verificar…';const r=await post({action:'login',nome:n,pin:p});LG.ocup=false;
- if(r&&r.ok){lgOk(n,p,r.perfil);return}if(r&&r.semPin){LG.temPin=false;lgErro(r.erro,'criar1');return}lgErro((r&&r.erro)||'PIN incorreto.')}
+ if(r&&r.ok){lgOk(n,p,r.perfil,r.token);return}if(r&&r.semPin){LG.temPin=false;lgErro(r.erro,'criar1');return}lgErro((r&&r.erro)||'PIN incorreto.')}
 async function iniciar(id){if(!EMB)setTimeout(()=>window.mostrarInstallPrompt&&window.mostrarInstallPrompt(),900);$('lg').hidden=true;$('ap').hidden=false;$('bV').hidden=!(EMB||Q.get('voltar'));S.seg=segDe(new Date());if([0,6].indexOf(new Date().getDay())>-1)S.seg=add(S.seg,7);const h=iso(new Date());S.dia=(h>=S.seg&&h<=add(S.seg,4))?h:S.seg;S.g=U.nome;
  await dbInit();await carregar();const a=id||Q.get('id');if(a){abrirId(a);if(EMB&&S.rows.find(x=>x.id===a)){POP=true;S.o=a;mostrarPopupMobile()}}}
-async function buscar(){try{const r=await fetch(API+'?tipo=prospeccao&t='+Date.now()),d=await r.json();if(d&&d.ok&&d.rows){S.rows=d.rows;carregarIdsPropostas();try{localStorage.setItem('prospRows',JSON.stringify(d.rows))}catch(e){}return true}}catch(e){}
+async function buscar(){try{const r=await fetch(API+'?tipo=prospeccao&token='+encodeURIComponent(U.token)+'&t='+Date.now()),d=await r.json();if(d&&d.sessaoInvalida){sessaoExpirou();return false}if(d&&d.ok&&d.rows){S.rows=d.rows;carregarIdsPropostas();try{localStorage.setItem('prospRows',JSON.stringify(d.rows))}catch(e){}return true}}catch(e){}
  const d=await post({action:'prospeccao_ler'});if(d&&d.ok){S.rows=d.rows||[];carregarIdsPropostas();return true}return false}
 async function carregar(){if(S.rows.length)draw();else $('ls').innerHTML='<div class="vz">A carregar…</div>';const ok=await buscar();if(!ok&&!S.rows.length){$('ls').innerHTML='<div class="vz">Não foi possível carregar. Verifica a ligação.</div>';return}draw()}
 function abrirId(id){const r=S.rows.find(x=>x.id===id);if(!r)return;if(U.perfil==='editor')S.g=r.gestor;S.tab='todos';S.so=id;S.o=id;S.q='';S.t='';S.c='';draw()}
@@ -827,12 +837,11 @@ async function exportar(){
  XLSX.writeFile(wb,'prospecao_'+iso(new Date())+'.xlsx');
 }
 (async function(){
- if(EMB){window.addEventListener('message',e=>{if(e.origin!==PICOS_ORIGIN)return;const m=e.data||{};if(m.tipo==='sessao'){U.nome=m.utilizador;U.perfil=m.perfil;U.pin=m.pinEditor||'';if(m.rows&&m.rows.length)S.rows=m.rows;iniciar(m.id)}});parent.postMessage({tipo:'pronto'},PICOS_ORIGIN);return}
+ if(EMB){window.addEventListener('message',e=>{if(e.origin!==PICOS_ORIGIN)return;const m=e.data||{};if(m.tipo==='sessao'){U.nome=m.utilizador;U.perfil=m.perfil;U.pin=m.pinEditor||'';U.token=m.token||'';if(m.rows&&m.rows.length)S.rows=m.rows;iniciar(m.id)}});parent.postMessage({tipo:'pronto'},PICOS_ORIGIN);return}
  $('lgKb').innerHTML=[1,2,3,4,5,6,7,8,9].map(n=>'<button type="button" class="lock-tecla" onclick="lgDig(\''+n+'\')">'+n+'</button>').join('')+'<button type="button" class="lock-tecla vazia" tabindex="-1" aria-hidden="true"></button><button type="button" class="lock-tecla" onclick="lgDig(\'0\')">0</button><button type="button" class="lock-tecla apagar" onclick="lgApagar()" aria-label="Apagar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 5H9l-6 7 6 7h12a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1z"/><line x1="12" y1="9" x2="18" y2="15"/><line x1="18" y1="9" x2="12" y2="15"/></svg></button>';
  $('lg').hidden=false;document.addEventListener('keydown',e=>{if($('lg').hidden||$('lgPassoP').hidden)return;if(/^\d$/.test(e.key))lgDig(e.key);else if(e.key==='Backspace')lgApagar()});
  try{const c=JSON.parse(localStorage.getItem('prospCfg')||'null');if(c&&c.l){LG.lista=c.l;LG.fotos=c.f||{};lgGrid()}}catch(e){}
  try{S.rows=JSON.parse(localStorage.getItem('prospRows')||'[]')}catch(e){}
- buscar();
  try{const r=await fetch(API+'?tipo=gestores&t='+Date.now()),d=await r.json();if(d&&d.listaGestores){LG.lista=d.listaGestores;LG.fotos=d.fotosPessoas||{};lgGrid();try{localStorage.setItem('prospCfg',JSON.stringify({l:LG.lista,f:LG.fotos}))}catch(e){}}}catch(e){if(!LG.lista.length)$('lgErroG').textContent='Sem ligação ao servidor.'}
  })();
 </script><script>
