@@ -152,6 +152,11 @@ textarea{width:100%;margin-top:10px;border:1px solid var(--bd);border-radius:10p
 .nv-card h3{margin:0 0 4px;font-size:17px;font-weight:800}
 .nv-card p{margin:0 0 14px;font-size:13px;color:var(--mu)}
 .nv-card input[type="date"], .nv-card textarea{width:100%;padding:11px;border:1px solid var(--bd);border-radius:10px;background:var(--bg);color:var(--tx);font-size:14px;box-sizing:border-box}
+.nv-card.nv-form{max-width:380px;max-height:90vh;overflow:auto}
+.nv-form label{display:block;font-size:12px;font-weight:700;color:var(--mu);margin:10px 0 4px}
+.nv-form input,.nv-form select,.nv-form textarea{width:100%;padding:11px;border:1px solid var(--bd);border-radius:10px;background:var(--bg);color:var(--tx);font-size:14px;box-sizing:border-box;font-family:inherit}
+.nv-form .nf-par{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.nv-form .nf-erro{color:#dc2626;font-size:13px;min-height:18px;margin-top:8px}
 .nv-btns{display:flex;flex-direction:column;gap:8px;margin-top:14px}
 .nv-btns-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 
@@ -267,6 +272,33 @@ textarea{width:100%;margin-top:10px;border:1px solid var(--bd);border-radius:10p
   </div>
 </div>
 
+<!-- Modal Novo estabelecimento -->
+<div class="nv-overlay" id="novoOv" hidden>
+  <div class="nv-card nv-form">
+    <h3>Novo estabelecimento</h3>
+    <p>Fica guardado na folha de prospeção e aparece já na lista.</p>
+    <label for="nfNome">Nome do estabelecimento *</label><input id="nfNome" maxlength="200" autocomplete="off">
+    <label for="nfLoc">Localidade *</label><input id="nfLoc" maxlength="200" list="nfLocLista" autocomplete="off"><datalist id="nfLocLista"></datalist>
+    <label for="nfGestor">Gestor</label><select id="nfGestor"></select>
+    <div class="nf-par">
+      <div><label for="nfTipo">Tipo de visita</label><select id="nfTipo"><option>Prospeção</option><option>Reconquista</option><option>Execução Barril</option></select></div>
+      <div><label for="nfPrev">Previsão</label><select id="nfPrev"><option value="">—</option><option>Quente</option><option>Morno</option><option>Frio</option></select></div>
+    </div>
+    <label for="nfOrla">Orla</label><select id="nfOrla"><option value="">—</option><option>Sim</option><option>Não</option></select>
+    <label for="nfCNome">Pessoa de contacto</label><input id="nfCNome" maxlength="200" autocomplete="off">
+    <div class="nf-par">
+      <div><label for="nfTel">Telefone</label><input id="nfTel" maxlength="200" inputmode="tel" autocomplete="off"></div>
+      <div><label for="nfMail">E-mail</label><input id="nfMail" maxlength="200" inputmode="email" autocomplete="off"></div>
+    </div>
+    <label for="nfNotas">Notas</label><textarea id="nfNotas" rows="2" maxlength="500"></textarea>
+    <div class="nf-erro" id="nfErro" role="alert"></div>
+    <div class="nv-btns">
+      <button type="button" class="btn bl" id="nfOk" onclick="novoGuardar()">Guardar estabelecimento</button>
+      <button type="button" class="btn" onclick="novoFechar()">Cancelar</button>
+    </div>
+  </div>
+</div>
+
 <!-- Modal Arquivar -->
 <div class="nv-overlay" id="arqOv" hidden>
   <div class="nv-card">
@@ -337,7 +369,7 @@ textarea{width:100%;margin-top:10px;border:1px solid var(--bd);border-radius:10p
 <script>
 const API="https://script.google.com/macros/s/AKfycbwJoWQTZASCbn_nQXDNA3plu-kUa4qwnx24T8Hx2nzjJ8q4jlDFw8HLzd6yQycQlEA/exec";
 const PICOS_ORIGIN='https://focosemanalpicos.onrender.com',Q=new URLSearchParams(location.search),EMB=Q.get('embed')==='1',$=i=>document.getElementById(i);
-const U={nome:'',perfil:'',pin:'',token:''},S={rows:[],tab:'todos',ed:'',e:'abertos',seg:'',dia:'',q:'',t:'',c:'',g:'',o:'',so:'',n:50};
+const U={nome:'',perfil:'',token:''},S={rows:[],tab:'todos',ed:'',e:'abertos',seg:'',dia:'',q:'',t:'',c:'',g:'',o:'',so:'',n:50};
 const iso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 const add=(s,n)=>{const d=new Date(s+'T12:00:00');d.setDate(d.getDate()+n);return iso(d)};
 const segDe=d=>{d=new Date(d);d.setDate(d.getDate()-((d.getDay()+6)%7));return iso(d)};
@@ -357,17 +389,31 @@ function mg(a,b){
   return s.every(t=>{const i=l.findIndex((u,k)=>usados.indexOf(k)<0&&ig(t,u));if(i<0)return false;usados.push(i);return true});
 }
 const ROT={tipologia:'Tipologia',segmentacao:'Segmentação',marcaAtual:'Marca atual',marcaConquistar:'Marca a conquistar',prevBarril:'Previsão barril',prevGarrafa:'Previsão garrafa',prevLuso:'Previsão Luso',descontoBarril:'Desconto barril',dataAbordagem:'Data abordagem',contactoNome:'Contacto',contacto:'Telefone',email:'Email',motivo:'Motivo',idSAP:'ID SAP',status:'Status Excel'};
-async function post(p){p=Object.assign({utilizador:U.nome,perfil:U.perfil,token:U.token},p);for(let i=0;i<3;i++){try{const r=await fetch(API,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(p)});const d=await r.json();if(d&&d.sessaoInvalida){sessaoExpirou();return d}if(d&&d.ok===false&&/ocupado/i.test(d.erro||'')&&i<2){await new Promise(s=>setTimeout(s,800*(i+1)));continue}return d}catch(e){if(i==2)return{ok:false,erro:'sem ligação'};await new Promise(s=>setTimeout(s,800))}}}
-// Sessão terminada no servidor (24 h, PIN mudado...): volta ao ecrã de entrada.
-function sessaoExpirou(){
- U.token='';U.pin='';
- if(EMB){parent.postMessage({tipo:'sessaoExpirada'},PICOS_ORIGIN);return}
- if($('ap').hidden)return;
- U.nome='';U.perfil='';
- const p=$('mobPopup');if(p)p.hidden=true;document.body.style.overflow='';
- $('ap').hidden=true;$('lg').hidden=false;lgVoltar();
- $('lgErroG').textContent='Sessão expirada. Toca na tua foto e entra com o PIN.';
-}
+async function post(p){p=Object.assign({utilizador:U.nome,perfil:U.perfil,token:U.token},p);for(let i=0;i<3;i++){try{const r=await fetch(API,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(p)});const d=await r.json();if(d&&d.sessaoInvalida){sessaoExp();return d}if(d&&d.ok===false&&/ocupado/i.test(d.erro||'')&&i<2){await new Promise(s=>setTimeout(s,800*(i+1)));continue}return d}catch(e){if(i==2)return{ok:false,erro:'sem ligação'};await new Promise(s=>setTimeout(s,800))}}}
+function novoAbrir(){
+ const ed=U.perfil==='editor',gs=[...new Set(S.rows.map(r=>r.gestor).concat(LG.lista||[]).filter(Boolean))].sort(),gsel=$('nfGestor');
+ gsel.innerHTML=ed?gs.map(g=>'<option'+(mg(g,S.g)||(S.g==='*'&&mg(g,U.nome))?' selected':'')+'>'+esc(g)+'</option>').join(''):'<option>'+esc(U.nome)+'</option>';
+ gsel.disabled=!ed;
+ $('nfLocLista').innerHTML=[...new Set(S.rows.map(r=>r.localidade).filter(Boolean))].sort().map(l=>'<option value="'+esc(l)+'"></option>').join('');
+ ['nfNome','nfLoc','nfCNome','nfTel','nfMail','nfNotas'].forEach(i=>$(i).value='');$('nfTipo').value='Prospeção';$('nfPrev').value='';$('nfOrla').value='';
+ $('nfErro').textContent='';$('nfOk').disabled=false;$('novoOv').hidden=false;setTimeout(()=>$('nfNome').focus(),50)}
+function novoFechar(){$('novoOv').hidden=true}
+async function novoGuardar(){
+ const v=i=>$(i).value.trim(),nome=v('nfNome'),loc=v('nfLoc');
+ if(!nome||!loc){$('nfErro').textContent='Indica o nome e a localidade.';return}
+ $('nfOk').disabled=true;$('nfErro').textContent='A guardar…';
+ const d=await post({action:'prospeccao_criar',campos:{nome:nome,localidade:loc,gestor:$('nfGestor').value,tipoVisita:v('nfTipo'),previsao:v('nfPrev'),orla:v('nfOrla'),contactoNome:v('nfCNome'),contacto:v('nfTel'),email:v('nfMail'),notas:v('nfNotas')}});
+ if(!d||!d.ok){$('nfOk').disabled=false;$('nfErro').textContent=(d&&d.erro)||'Não foi possível guardar. Verifica a ligação.';return}
+ novoFechar();
+ if(U.perfil==='editor'&&S.g!=='*'&&!mg(d.row.gestor,S.g))S.g=d.row.gestor;
+ S.tab='todos';S.q='';if($('q'))$('q').value='';S.t='';S.c='';S.e='abertos';S.n=Math.max(S.n,50);
+ S.rows.push(d.row);draw();await carregar();try{abrirId(d.row.id)}catch(e){}}
+function tk(){return U.token?'&token='+encodeURIComponent(U.token):''}
+let SESSAO_EXP=false;
+function sessaoExp(){
+ U.token='';if(SESSAO_EXP)return;SESSAO_EXP=true;
+ if(EMB){parent.postMessage({tipo:'sessaoInvalida'},PICOS_ORIGIN);return}
+ U.nome='';$('ap').hidden=true;$('lg').hidden=false;lgVoltar();lgMsg('A sessão expirou. Entra de novo com o PIN.')}
 function voltar(){if(EMB)parent.postMessage({tipo:'voltar'},PICOS_ORIGIN);else if(Q.get('voltar'))location.href=Q.get('voltar')}
 const TIT={entrar:'Introduza o PIN para entrar',criar1:'Cria o teu PIN (4 dígitos)',criar2:'Repete o PIN para confirmar',mudar0:'Introduz o PIN atual',mudar1:'Escolhe o novo PIN',mudar2:'Repete o novo PIN',bloqueado:''};
 const LG={lista:[],fotos:{},nome:'',modo:'bloqueado',buf:'',tmp:'',atual:'',ocup:false,temPin:false,req:0};
@@ -389,7 +435,7 @@ async function lgEsc(i){const n=LG.lista[i];if(!n)return;if(KN[n]){LG.nome=n;LG.
 function lgDig(d){if(LG.ocup||LG.modo==='bloqueado'||LG.buf.length>=4)return;lgMsg('');LG.buf+=d;lgDots();if(LG.buf.length===4)setTimeout(lgProc,120)}
 function lgApagar(){if(LG.ocup)return;LG.buf=LG.buf.slice(0,-1);lgDots()}
 function lgErro(m,prox){const d=$('lgDots');d.classList.add('erro');lgMsg(m);setTimeout(()=>{d.classList.remove('erro');lgModo(prox||LG.modo)},400)}
-function lgOk(n,p,perfil,token){U.token=token||'';KN[n]=1;try{localStorage.setItem('prospPin',JSON.stringify(KN))}catch(e){}U.nome=n;U.perfil=perfil;U.pin=perfil==='editor'?p:'';iniciar()}
+function lgOk(n,p,perfil,token){KN[n]=1;try{localStorage.setItem('prospPin',JSON.stringify(KN))}catch(e){}U.nome=n;U.perfil=perfil;U.token=token||'';SESSAO_EXP=false;iniciar()}
 async function lgProc(){const p=LG.buf,m=LG.modo,n=LG.nome;if(p.length!==4||LG.ocup)return;
  if(m==='criar1'){LG.tmp=p;lgModo('criar2');return}
  if(m==='criar2'){if(p!==LG.tmp){LG.tmp='';lgErro('Os PINs não coincidem. Tenta de novo.','criar1');return}LG.ocup=true;$('lgTit').textContent='A guardar…';const r=await post({action:'criar_pin',nome:n,pin:p});LG.ocup=false;LG.tmp='';
@@ -402,7 +448,7 @@ async function lgProc(){const p=LG.buf,m=LG.modo,n=LG.nome;if(p.length!==4||LG.o
  if(r&&r.ok){lgOk(n,p,r.perfil,r.token);return}if(r&&r.semPin){LG.temPin=false;lgErro(r.erro,'criar1');return}lgErro((r&&r.erro)||'PIN incorreto.')}
 async function iniciar(id){if(!EMB)setTimeout(()=>window.mostrarInstallPrompt&&window.mostrarInstallPrompt(),900);$('lg').hidden=true;$('ap').hidden=false;$('bV').hidden=!(EMB||Q.get('voltar'));S.seg=segDe(new Date());if([0,6].indexOf(new Date().getDay())>-1)S.seg=add(S.seg,7);const h=iso(new Date());S.dia=(h>=S.seg&&h<=add(S.seg,4))?h:S.seg;S.g=U.nome;
  await dbInit();await carregar();const a=id||Q.get('id');if(a){abrirId(a);if(EMB&&S.rows.find(x=>x.id===a)){POP=true;S.o=a;mostrarPopupMobile()}}}
-async function buscar(){try{const r=await fetch(API+'?tipo=prospeccao&token='+encodeURIComponent(U.token)+'&t='+Date.now()),d=await r.json();if(d&&d.sessaoInvalida){sessaoExpirou();return false}if(d&&d.ok&&d.rows){S.rows=d.rows;carregarIdsPropostas();try{localStorage.setItem('prospRows',JSON.stringify(d.rows))}catch(e){}return true}}catch(e){}
+async function buscar(){try{const r=await fetch(API+'?tipo=prospeccao&t='+Date.now()+tk()),d=await r.json();if(d&&d.sessaoInvalida){sessaoExp();return false}if(d&&d.ok&&d.rows){S.rows=d.rows;carregarIdsPropostas();try{localStorage.setItem('prospRows',JSON.stringify(d.rows))}catch(e){}return true}}catch(e){}
  const d=await post({action:'prospeccao_ler'});if(d&&d.ok){S.rows=d.rows||[];carregarIdsPropostas();return true}return false}
 async function carregar(){if(S.rows.length)draw();else $('ls').innerHTML='<div class="vz">A carregar…</div>';const ok=await buscar();if(!ok&&!S.rows.length){$('ls').innerHTML='<div class="vz">Não foi possível carregar. Verifica a ligação.</div>';return}draw()}
 function abrirId(id){const r=S.rows.find(x=>x.id===id);if(!r)return;if(U.perfil==='editor')S.g=r.gestor;S.tab='todos';S.so=id;S.o=id;S.q='';S.t='';S.c='';draw()}
@@ -485,7 +531,7 @@ async function lerDescontoBarrilPdf(f){
    se essa ação ainda não existir, tenta descarregar o PDF diretamente no browser. */
 async function lerDescontoDeDrive(fileId,id){
   try{
-    const r=await post({action:'prospeccao_proposta_desconto',id:id,fileId:fileId,pinEditor:U.pin});
+    const r=await post({action:'prospeccao_proposta_desconto',id:id,fileId:fileId});
     if(r&&r.ok&&typeof r.props==='string')return {lido:true,desc:interpretarPropsDesconto(r.props)};
   }catch(e){}
   try{
@@ -501,7 +547,7 @@ async function tratarDescontoLido(id,res){
 }
 async function atualizarDescontoDaProposta(id,desc){
   if(!confirm('Descontos de barril encontrados na proposta:\n'+desc.partes.join('\n')+'\n\nAtualizar o Potencial & Negócio?'))return;
-  const d=await post({action:'prospeccao_editar',id:id,campos:{descontoBarril:desc.texto},pinEditor:U.pin});
+  const d=await post({action:'prospeccao_editar',id:id,campos:{descontoBarril:desc.texto}});
   if(!d||!d.ok){toast((d&&d.erro)||'Não foi possível atualizar os descontos.',true);return}
   const i=S.rows.findIndex(x=>String(x.id)===String(id));if(i>-1&&d.row)S.rows[i]=d.row;
   toast('Descontos de barril atualizados.');draw();
@@ -515,7 +561,7 @@ async function guardarPropostaFicheiro(input){
   try{
     toast('A carregar proposta para o Drive…');
     const base64=await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(String(reader.result).split(',').pop());reader.onerror=()=>reject(new Error('Não foi possível ler o ficheiro.'));reader.readAsDataURL(f);});
-    const resp=await post({action:'prospeccao_proposta_guardar',id:id,nomeFicheiro:f.name,mimeType:f.type||'application/octet-stream',base64:base64,pinEditor:U.pin});
+    const resp=await post({action:'prospeccao_proposta_guardar',id:id,nomeFicheiro:f.name,mimeType:f.type||'application/octet-stream',base64:base64});
     if(!resp||!resp.ok){toast((resp&&resp.erro)||'Não foi possível guardar a proposta.',true);return;}
     if(resp.row){const ix=S.rows.findIndex(x=>String(x.id)===String(id));if(ix>=0)S.rows[ix]=resp.row;}
     await carregarIdsPropostas();toast('Proposta guardada no Google Drive.');await abrirPropPopup(id);draw();
@@ -560,7 +606,7 @@ async function abrirSeletorDrive(){
   if(!PROP_PENDENTE)return;
   const box=$('propDriveLista'),itens=$('propDriveItens');
   box.hidden=false;itens.innerHTML='<div class="prop-meta">A carregar ficheiros da pasta partilhada…</div>';
-  const resp=await post({action:'prospeccao_proposta_listar_drive',id:PROP_PENDENTE,pinEditor:U.pin});
+  const resp=await post({action:'prospeccao_proposta_listar_drive',id:PROP_PENDENTE});
   if(!resp||!resp.ok){itens.innerHTML='<div class="prop-meta">'+escaparHtmlDrive(resp&&resp.erro||'Não foi possível consultar a pasta do Drive.')+'</div>';return;}
   if(!resp.files||!resp.files.length){itens.innerHTML='<div class="prop-meta">Não foram encontrados ficheiros nesta pasta.</div>';return;}
   DRIVE_FILES=resp.files;DRIVE_TODOS=false;renderDrive();
@@ -568,7 +614,7 @@ async function abrirSeletorDrive(){
 async function associarPropostaDrive(fileId){
   if(!PROP_PENDENTE||!fileId)return;
   const id=PROP_PENDENTE;
-  const resp=await post({action:'prospeccao_proposta_associar',id:id,fileId:fileId,pinEditor:U.pin});
+  const resp=await post({action:'prospeccao_proposta_associar',id:id,fileId:fileId});
   if(!resp||!resp.ok){toast((resp&&resp.erro)||'Não foi possível associar o ficheiro.',true);return;}
   if(resp.row){const ix=S.rows.findIndex(x=>String(x.id)===String(id));if(ix>=0)S.rows[ix]=resp.row;}
   await carregarIdsPropostas();toast('Proposta associada a partir do Google Drive.');await abrirPropPopup(id);draw();
@@ -596,7 +642,7 @@ async function removerProposta(){
   if(!PROP_PENDENTE)return;
   if(!confirm('Tem a certeza de que deseja remover a associação desta proposta? Se for um ficheiro carregado especificamente para esta ficha, será enviado para o lixo; se tiver sido escolhido da pasta partilhada, o ficheiro original será mantido.'))return;
   const id=PROP_PENDENTE;
-  const resp=await post({action:'prospeccao_proposta_remover',id:id,pinEditor:U.pin});
+  const resp=await post({action:'prospeccao_proposta_remover',id:id});
   if(!resp||!resp.ok){toast((resp&&resp.erro)||'Não foi possível remover a proposta.',true);return;}
   if(resp.row){const ix=S.rows.findIndex(x=>String(x.id)===String(id));if(ix>=0)S.rows[ix]=resp.row;}
   await carregarIdsPropostas();toast('Proposta removida.');await abrirPropPopup(id);draw();
@@ -659,7 +705,7 @@ function confirmarArquivar(){
 let SAVING=false;
 function toast(t,err){let e=$('toast');if(!e){e=document.createElement('div');e.id='toast';e.style.cssText='position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:100000;max-width:90%;padding:10px 16px;border-radius:12px;font-size:13px;font-weight:700;color:#fff;box-shadow:0 4px 14px rgba(0,0,0,.25);text-align:center';document.body.appendChild(e)}e.style.background=err?'#dc2626':'#008200';e.textContent=t;e.style.display='block';clearTimeout(e._t);e._t=setTimeout(()=>{e.style.display='none'},err?7000:2200)}
 async function marcar(id,e,dataPlaneadaNova,motivoExtra){if(SAVING)return;SAVING=true;const bs=document.querySelectorAll('.ac3 .btn,.ac .btn');bs.forEach(b=>b.disabled=true);const ta=$('n_'+id);toast('A guardar…');
- try{const d=await post({action:'prospeccao_atualizar',id:id,estado:e,notas:ta?ta.value:undefined,dataPlaneada:dataPlaneadaNova,motivo:motivoExtra,pinEditor:U.pin});
+ try{const d=await post({action:'prospeccao_atualizar',id:id,estado:e,notas:ta?ta.value:undefined,dataPlaneada:dataPlaneadaNova,motivo:motivoExtra});
   if(!d||!d.ok){toast('Não guardou: '+((d&&d.erro)||'sem resposta do servidor'),true);return}
   const i=S.rows.findIndex(r=>r.id===id);
   if(i>-1){
@@ -785,7 +831,7 @@ function card(r){return(S.ed===r.id&&S.o===r.id&&U.perfil==='editor')?cardEdit(r
 function editar(id){S.ed=id;S.o=id;draw()}function cancelarEd(){S.ed='';draw()}
 async function guardarEd(id){const c={};let n=0;EDITF.forEach(f=>{if(typeof f==='string')return;const el=$('e_'+f[0]);if(!el)return;let v=el.value.trim();const ty=f[2][0];if(ty==='n')v=v.replace(/\D/g,'');else if(ty==='p'&&v)v=fv('descontoBarril',v);if(v!==el.dataset.o){c[f[0]]=v;n++}});
  if(!n){S.ed='';draw();return}
- const d=await post({action:'prospeccao_editar',id:id,campos:c,pinEditor:U.pin});if(!d||!d.ok){alert('Não foi possível guardar: '+((d&&d.erro)||'sem ligação'));return}
+ const d=await post({action:'prospeccao_editar',id:id,campos:c});if(!d||!d.ok){alert('Não foi possível guardar: '+((d&&d.erro)||'sem ligação'));return}
  const i=S.rows.findIndex(r=>r.id===id);if(i>-1)S.rows[i]=d.row;S.ed='';draw()}
 const cl=r=>{const h=card(r);return DK()?h.slice(0,h.indexOf('<div class="dt">'))+'</div>':h};
 function painel(){const p=$('dp');if(!DK()){p.innerHTML='';return}const r=S.rows.find(x=>x.id===S.o);p.innerHTML=r?card(r):'<div class="vz">Seleciona um estabelecimento da lista para ver os detalhes.</div>'}
@@ -797,7 +843,7 @@ function draw0(){const ed=U.perfil==='editor',gs=[...new Set(S.rows.map(r=>r.ges
  $('gW').hidden=false;gsel.disabled=!ed;if(!ed){gsel.innerHTML='<option>'+esc(U.nome)+'</option>'}if(ed){gsel.innerHTML='<option value="*"'+(S.g==='*'?' selected':'')+'>Todos</option>'+gs.map(g=>'<option'+(mg(g,S.g)?' selected':'')+'>'+esc(g)+'</option>').join('');}
  avatar();const all=ed&&S.g==='*',m=all?S.rows.slice():S.rows.filter(r=>mg(r.gestor,ed?(gs.find(g=>mg(g,S.g))||S.g):U.nome));
  $('tS').classList.toggle('on',S.tab==='semana');$('tT').classList.toggle('on',S.tab==='todos');$('vS').hidden=S.tab!=='semana';$('vT').hidden=S.tab!=='todos';
- $('ed').innerHTML=isAdm()?'<button class="btn" onclick="gerar()">Gerar semana</button><button class="btn" onclick="gerar(4)">Gerar 4 semanas</button><button class="btn" onclick="$(\'fx\').click()">Importar Excel</button><button class="btn" onclick="exportar()">Descarregar Excel</button><input id="fx" type="file" accept=".xlsx" hidden onchange="importar(this)">':'<button class="btn" onclick="exportar()">Descarregar Excel</button>';
+ $('ed').innerHTML=isAdm()?'<button class="btn bl" onclick="novoAbrir()">＋ Novo estabelecimento</button><button class="btn" onclick="gerar()">Gerar semana</button><button class="btn" onclick="gerar(4)">Gerar 4 semanas</button><button class="btn" onclick="$(\'fx\').click()">Importar Excel</button><button class="btn" onclick="exportar()">Descarregar Excel</button><input id="fx" type="file" accept=".xlsx" hidden onchange="importar(this)">':'<button class="btn bl" onclick="novoAbrir()">＋ Novo estabelecimento</button><button class="btn" onclick="exportar()">Descarregar Excel</button>';
  let l;if(S.tab==='semana'){const d0=new Date(S.seg+'T12:00:00'),d4=new Date(add(S.seg,4)+'T12:00:00'),t=new Date(Date.UTC(d0.getFullYear(),d0.getMonth(),d0.getDate()));t.setUTCDate(t.getUTCDate()+4-(t.getUTCDay()||7));const w=Math.ceil(((t-new Date(Date.UTC(t.getUTCFullYear(),0,1)))/864e5+1)/7);
   $('sT').textContent='Semana '+w+' · '+d0.getDate()+'–'+d4.getDate()+'/'+(d4.getMonth()+1);
   $('ds').innerHTML=[0,1,2,3,4].map(i=>{const d=add(S.seg,i);return '<button class="dia'+(d===S.dia?' on':'')+'" onclick="S.dia=\''+d+'\';S.o=\'\';draw()">'+['Seg','Ter','Qua','Qui','Sex'][i]+'<small>'+m.filter(r=>r.dataPlaneada===d).length+' visitas</small></button>'}).join('');
@@ -810,11 +856,11 @@ function draw0(){const ed=U.perfil==='editor',gs=[...new Set(S.rows.map(r=>r.ges
   l=S.so?m.filter(r=>r.id===S.so):m.filter(r=>fl(r,'')).sort((a,b)=>a.localidade.localeCompare(b.localidade,'pt')||a.nome.localeCompare(b.nome,'pt'));
   $('ls').innerHTML=(S.so?'<button class="btn" onclick="S.so=\'\';S.o=\'\';draw()">Ver todos</button>':'<div class="sb">'+l.length+' estabelecimentos</div>')+l.slice(0,S.n).map(cl).join('')+(l.length>S.n?'<button class="btn" style="width:100%" onclick="S.n+=50;draw()">Mostrar mais</button>':'')}}
 $('gSel').onchange=function(){S.g=this.value;S.o='';draw()};
-async function gerar(n){n=n||1;if(!isAdm())return;if(add(S.seg,4)<iso(new Date())&&!confirm('A semana '+S.seg+' já passou: as visitas geradas não vão aparecer nos Picos. Gerar mesmo assim?'))return;if(!confirm('Gerar o plano da semana '+S.seg+(n>1?' e das '+(n-1)+' seguintes':'')+' para todos os gestores?'))return;const d=await post({action:'prospeccao_gerar',segunda:S.seg,semanas:n,pinEditor:U.pin});if(!d||!d.ok){alert('Erro: '+((d&&d.erro)||'sem ligação'));return}carregar()}
+async function gerar(n){n=n||1;if(!isAdm())return;if(add(S.seg,4)<iso(new Date())&&!confirm('A semana '+S.seg+' já passou: as visitas geradas não vão aparecer nos Picos. Gerar mesmo assim?'))return;if(!confirm('Gerar o plano da semana '+S.seg+(n>1?' e das '+(n-1)+' seguintes':'')+' para todos os gestores?'))return;const d=await post({action:'prospeccao_gerar',segunda:S.seg,semanas:n});if(!d||!d.ok){alert('Erro: '+((d&&d.erro)||'sem ligação'));return}carregar()}
 function xl(){return window.XLSX?Promise.resolve():new Promise((ok,er)=>{const t=document.createElement('script');t.src='https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';t.onload=ok;t.onerror=er;document.head.appendChild(t)})}
 async function importar(i){if(!isAdm()||!i.files[0])return;await xl();const wb=XLSX.read(await i.files[0].arrayBuffer()),rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:''});
  if(!rows.length||!rows[0].nome){alert('Ficheiro inválido: é necessária a coluna nome.');return}if(!confirm('Atualizar '+rows.length+' estabelecimentos? Campos vazios, propostas, histórico e marcações existentes serão preservados.'))return;
- const d=await post({action:'prospeccao_importar',rows:rows,pinEditor:U.pin});if(!d||!d.ok){alert('Erro: '+((d&&d.erro)||'sem ligação'));return}i.value='';carregar()}
+ const d=await post({action:'prospeccao_importar',rows:rows});if(!d||!d.ok){alert('Erro: '+((d&&d.erro)||'sem ligação'));return}i.value='';carregar()}
 async function exportar(){
  await xl();
  const wb=XLSX.utils.book_new();
@@ -837,12 +883,12 @@ async function exportar(){
  XLSX.writeFile(wb,'prospecao_'+iso(new Date())+'.xlsx');
 }
 (async function(){
- if(EMB){window.addEventListener('message',e=>{if(e.origin!==PICOS_ORIGIN)return;const m=e.data||{};if(m.tipo==='sessao'){U.nome=m.utilizador;U.perfil=m.perfil;U.pin=m.pinEditor||'';U.token=m.token||'';if(m.rows&&m.rows.length)S.rows=m.rows;iniciar(m.id)}});parent.postMessage({tipo:'pronto'},PICOS_ORIGIN);return}
+ if(EMB){window.addEventListener('message',e=>{if(e.origin!==PICOS_ORIGIN)return;const m=e.data||{};if(m.tipo==='sessao'){U.nome=m.utilizador;U.perfil=m.perfil;U.token=m.token||'';SESSAO_EXP=false;if(m.rows&&m.rows.length)S.rows=m.rows;iniciar(m.id)}});parent.postMessage({tipo:'pronto'},PICOS_ORIGIN);return}
  $('lgKb').innerHTML=[1,2,3,4,5,6,7,8,9].map(n=>'<button type="button" class="lock-tecla" onclick="lgDig(\''+n+'\')">'+n+'</button>').join('')+'<button type="button" class="lock-tecla vazia" tabindex="-1" aria-hidden="true"></button><button type="button" class="lock-tecla" onclick="lgDig(\'0\')">0</button><button type="button" class="lock-tecla apagar" onclick="lgApagar()" aria-label="Apagar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 5H9l-6 7 6 7h12a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1z"/><line x1="12" y1="9" x2="18" y2="15"/><line x1="18" y1="9" x2="12" y2="15"/></svg></button>';
  $('lg').hidden=false;document.addEventListener('keydown',e=>{if($('lg').hidden||$('lgPassoP').hidden)return;if(/^\d$/.test(e.key))lgDig(e.key);else if(e.key==='Backspace')lgApagar()});
  try{const c=JSON.parse(localStorage.getItem('prospCfg')||'null');if(c&&c.l){LG.lista=c.l;LG.fotos=c.f||{};lgGrid()}}catch(e){}
  try{S.rows=JSON.parse(localStorage.getItem('prospRows')||'[]')}catch(e){}
- try{const r=await fetch(API+'?tipo=gestores&t='+Date.now()),d=await r.json();if(d&&d.listaGestores){LG.lista=d.listaGestores;LG.fotos=d.fotosPessoas||{};lgGrid();try{localStorage.setItem('prospCfg',JSON.stringify({l:LG.lista,f:LG.fotos}))}catch(e){}}}catch(e){if(!LG.lista.length)$('lgErroG').textContent='Sem ligação ao servidor.'}
+ try{const r=await fetch(API+'?tipo=gestores&t='+Date.now()),d=await r.json();if(d&&d.listaGestores){LG.lista=d.listaGestores;LG.fotos=d.fotosPessoas||LG.fotos||{};lgGrid();try{localStorage.setItem('prospCfg',JSON.stringify({l:LG.lista,f:LG.fotos}))}catch(e){}}}catch(e){if(!LG.lista.length)$('lgErroG').textContent='Sem ligação ao servidor.'}
  })();
 </script><script>
 (function(){const K='prospecao_install_prompt_v2',st=()=>matchMedia('(display-mode: standalone)').matches||navigator.standalone===true,ios=()=>/iphone|ipad|ipod/i.test(navigator.userAgent)&&!window.MSStream,$=i=>document.getElementById(i);
