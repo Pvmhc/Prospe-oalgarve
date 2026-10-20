@@ -858,7 +858,29 @@ function draw0(){const ed=U.perfil==='editor',gs=[...new Set(S.rows.map(r=>r.ges
 $('gSel').onchange=function(){S.g=this.value;S.o='';draw()};
 async function gerar(n){n=n||1;if(!isAdm())return;if(add(S.seg,4)<iso(new Date())&&!confirm('A semana '+S.seg+' já passou: as visitas geradas não vão aparecer nos Picos. Gerar mesmo assim?'))return;if(!confirm('Gerar o plano da semana '+S.seg+(n>1?' e das '+(n-1)+' seguintes':'')+' para todos os gestores?'))return;const d=await post({action:'prospeccao_gerar',segunda:S.seg,semanas:n});if(!d||!d.ok){alert('Erro: '+((d&&d.erro)||'sem ligação'));return}carregar()}
 function xl(){return window.XLSX?Promise.resolve():new Promise((ok,er)=>{const t=document.createElement('script');t.src='https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';t.onload=ok;t.onerror=er;document.head.appendChild(t)})}
-async function importar(i){if(!isAdm()||!i.files[0])return;await xl();const wb=XLSX.read(await i.files[0].arrayBuffer()),rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:''});
+
+function lerFunil(wb){
+ const T=v=>String(v==null?'':v).trim();
+ for(const sn of wb.SheetNames){
+  const A=XLSX.utils.sheet_to_json(wb.Sheets[sn],{header:1,defval:''});
+  const hi=A.findIndex(r=>r.some(c=>T(c).toLowerCase()==='nome pdv'));
+  if(hi<0)continue;
+  const H=A[hi].map(c=>T(c).toLowerCase()),ix=n=>H.indexOf(n);
+  const M={idSAP:'id sap',tipologia:'tipologia',segmentacao:'segmentação',gestor:'gestor cliente',localidade:'localidade',orla:'zona orla',tipoVisita:'tipo de visita',marcaAtual:'marca atual',prevBarril:'previsão barril',prevGarrafa:'previsão garrafa',prevLuso:'previsão luso ret',marcaConquistar:'marca principal a conquistar',descontoBarril:'previsao desconto barril',previsao:'previsão conquista',dataAbordagem:'data abordagem',contactoNome:'nome',contacto:'contacto',email:'email',motivo:'motivo',status:'estado'};
+  const I={};for(const k in M)I[k]=ix(M[k]);
+  const ip=ix('nome pdv');
+  const out=[];
+  for(const r of A.slice(hi+1)){
+   const nome=T(r[ip]);if(!nome)continue;
+   const o={nome:nome};
+   for(const k in I){if(I[k]<0)continue;let v=r[I[k]];if(typeof v==='string'){v=v.trim();if(v.charAt(0)==='#')v=''}if(v!==''&&v!=null)o[k]=v}
+   if(o.segmentacao){let g=String(o.segmentacao).toLowerCase();g=g.charAt(0).toUpperCase()+g.slice(1);o.segmentacao=g==='Prestigio'?'Prestígio':g}
+   if(!o.localidade){const nn=x=>T(x).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();const ex=(typeof S!=='undefined'&&S.rows||[]).filter(x=>nn(x.nome)===nn(nome));
+    if(ex.length>=1){o.id=ex[0].id;o.localidade=ex[0].localidade}else o.id=o.idSAP?'SAP_'+o.idSAP:'AUTO_'+nn(nome).replace(/[^a-z0-9]+/g,'_')}
+   out.push(o)}
+  return out}
+ return XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:''})}
+async function importar(i){if(!isAdm()||!i.files[0])return;await xl();const wb=XLSX.read(await i.files[0].arrayBuffer()),rows=lerFunil(wb);
  if(!rows.length||!rows[0].nome){alert('Ficheiro inválido: é necessária a coluna nome.');return}if(!confirm('Atualizar '+rows.length+' estabelecimentos? Campos vazios, propostas, histórico e marcações existentes serão preservados.'))return;
  const d=await post({action:'prospeccao_importar',rows:rows});if(!d||!d.ok){alert('Erro: '+((d&&d.erro)||'sem ligação'));return}i.value='';carregar()}
 async function exportar(){
