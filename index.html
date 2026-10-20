@@ -858,12 +858,13 @@ function analise(m){
  const d=r=>r.detalhe||{},n=e=>m.filter(r=>r.estado===e).length,c=n('conquistado'),x=n('recusou'),pend=n('pendente'),anl=n('planeada')+n('feita')+n('falhada')+n('novavisita'),arq=n('arquivado');
  const orla=m.filter(r=>/^s/i.test(String(r.orla||'').trim())).length;
  S.anD={seg:anGrupos(m,r=>d(r).segmentacao),tip:anGrupos(m,r=>d(r).tipologia),
-  est:[['Por visitar',pend,'--bl'],['Em análise',anl,'--am'],['Conquistados',c,'--gn'],['Recusados',x,'--rd']].concat(arq?[['Arquivados',arq,'--mu']]:[]),
-  orla:[['Orla',orla,'--bl'],['Fora de orla',m.length-orla,'--am']]};
+  est:[['Por visitar',pend,'#3b82f6'],['Em análise',anl,'#f59e0b'],['Conquistados',c,'#22c55e'],['Recusados',x,'#ef4444']].concat(arq?[['Arquivados',arq,'#94a3b8']]:[]),
+  orla:[['Orla',orla,'#3b82f6'],['Fora de orla',m.length-orla,'#f97316']]};
+ const H=Math.max(340,S.anD.tip.length*50+80);
  return '<div class="an"><div class="kp"><div><b>'+m.length+'</b><small>Prospeção (total)</small></div><div><b style="color:var(--gn)">'+c+'</b><small>Conquistados</small></div><div><b style="color:var(--rd)">'+x+'</b><small>Recusados</small></div></div>'
  +'<div class="pi"><div class="bx"><h3>Estado dos prospects</h3><div class="cv" style="height:290px"><canvas id="cgEst"></canvas></div></div><div class="bx"><h3>Zona dos prospects</h3><div class="cv" style="height:290px"><canvas id="cgOrla"></canvas></div></div></div>'
- +'<div class="bx"><h3>Segmentação</h3><div class="cv" style="height:320px"><canvas id="cgSeg"></canvas></div></div>'
- +'<div class="bx"><h3>Tipologia</h3><div class="cv" style="height:'+Math.max(260,S.anD.tip.length*54+70)+'px"><canvas id="cgTip"></canvas></div></div></div>'}
+ +'<div class="pi"><div class="bx"><h3>Segmentação</h3><div class="cv" style="height:'+H+'px"><canvas id="cgSeg"></canvas></div></div>'
+ +'<div class="bx"><h3>Tipologia</h3><div class="cv" style="height:'+H+'px"><canvas id="cgTip"></canvas></div></div></div></div>'}
 const anVal={id:'anVal',afterDatasetsDraw(ch){const c=ch.ctx,t=ch.config.type==='pie';c.save();c.font='700 13px system-ui,sans-serif';const h=ch.options.indexAxis==='y';
  ch.data.datasets.forEach((ds,i)=>ch.getDatasetMeta(i).data.forEach((b,j)=>{const v=ds.data[j];if(!v)return;
   if(t){const p=b.tooltipPosition();c.fillStyle='#fff';c.textAlign='center';c.textBaseline='middle';c.shadowColor='rgba(0,0,0,.5)';c.shadowBlur=3;c.fillText(v,p.x,p.y);c.shadowBlur=0;return}
@@ -874,14 +875,14 @@ async function anDesenhar(){
  const cs=getComputedStyle(document.documentElement),V=n=>cs.getPropertyValue(n).trim(),tx=V('--tx')||'#000',mu=V('--mu')||'#657786',bd=V('--bd')||'#ddd';
  (S.anCh||[]).forEach(x=>x.destroy());S.anCh=[];
  const pie=(id,arr)=>{const el=$(id);if(!el||S.tab!=='analise')return;
-  S.anCh.push(new Chart(el,{type:'pie',data:{labels:arr.map(a=>a[0]),datasets:[{data:arr.map(a=>a[1]),backgroundColor:arr.map(a=>V(a[2])||'#888'),borderColor:V('--card')||'#fff',borderWidth:2}]},
+  S.anCh.push(new Chart(el,{type:'pie',data:{labels:arr.map(a=>a[0]),datasets:[{data:arr.map(a=>a[1]),backgroundColor:arr.map(a=>a[2]),borderColor:V('--card')||'#fff',borderWidth:2}]},
    options:{responsive:true,maintainAspectRatio:false,animation:false,plugins:{legend:{position:'bottom',labels:{color:tx,boxWidth:12}}}},plugins:[anVal]}))};
  const bar=(id,gr,h)=>{const el=$(id);if(!el||S.tab!=='analise')return;
   S.anCh.push(new Chart(el,{type:'bar',data:{labels:gr.map(g=>g.k),datasets:[
-   {label:'Prospeção (total)',data:gr.map(g=>g.n),backgroundColor:V('--bl')||'#2563eb'},
-   {label:'Conquistados',data:gr.map(g=>g.c),backgroundColor:V('--gn')||'#008200'},
-   {label:'Recusados',data:gr.map(g=>g.x),backgroundColor:V('--rd')||'#ff2b2b'}]},
-   options:{indexAxis:h?'y':'x',responsive:true,maintainAspectRatio:false,animation:false,layout:{padding:{top:16,right:h?24:0}},
+   {label:'Prospeção (total)',data:gr.map(g=>g.n),backgroundColor:'#3b82f6',borderRadius:4},
+   {label:'Conquistados',data:gr.map(g=>g.c),backgroundColor:'#22c55e',borderRadius:4},
+   {label:'Recusados',data:gr.map(g=>g.x),backgroundColor:'#ef4444',borderRadius:4}]},
+   options:{indexAxis:h?'y':'x',responsive:true,maintainAspectRatio:false,animation:false,layout:{padding:{top:16,right:h?40:0}},
     plugins:{legend:{position:'top',labels:{color:tx,boxWidth:12}}},
     scales:{x:{ticks:{color:mu,precision:0},grid:{color:h?bd:'transparent'},beginAtZero:true},y:{ticks:{color:h?tx:mu,precision:0},grid:{color:h?'transparent':bd},beginAtZero:true}}},plugins:[anVal]}))};
  pie('cgEst',S.anD.est);pie('cgOrla',S.anD.orla);bar('cgSeg',S.anD.seg,false);bar('cgTip',S.anD.tip,true)}
@@ -928,13 +929,13 @@ function lerFunil(wb){
    for(const k in I){if(I[k]<0)continue;let v=r[I[k]];if(typeof v==='string'){v=v.trim();if(v.charAt(0)==='#')v=''}if(v!==''&&v!=null)o[k]=v}
    if(o.segmentacao){let g=String(o.segmentacao).toLowerCase();g=g.charAt(0).toUpperCase()+g.slice(1);o.segmentacao=g==='Prestigio'?'Prestígio':g}
    if(!o.localidade){const nn=x=>T(x).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();const ex=(typeof S!=='undefined'&&S.rows||[]).filter(x=>nn(x.nome)===nn(nome));
-    if(ex.length>=1){o.id=ex[0].id;o.localidade=ex[0].localidade}else o.id=o.idSAP?'SAP_'+o.idSAP:'AUTO_'+nn(nome).replace(/[^a-z0-9]+/g,'_')}
+    if(ex.length>=1){o.id=ex[0].id;o.localidade=ex[0].localidade}else o.id=(o.idSAP?'SAP_'+o.idSAP+'_':'AUTO_')+nn(nome).replace(/[^a-z0-9]+/g,'_').slice(0,80)}
    out.push(o)}
   return out}
  return XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:''})}
 async function importar(i){if(!isAdm()||!i.files[0])return;await xl();const wb=XLSX.read(await i.files[0].arrayBuffer()),rows=lerFunil(wb);
  if(!rows.length||!rows[0].nome){alert('Ficheiro inválido: é necessária a coluna nome.');return}if(!confirm('Atualizar '+rows.length+' estabelecimentos? Campos vazios, propostas, histórico e marcações existentes serão preservados.'))return;
- const d=await post({action:'prospeccao_importar',rows:rows});if(!d||!d.ok){alert('Erro: '+((d&&d.erro)||'sem ligação'));return}i.value='';carregar()}
+ const d=await post({action:'prospeccao_importar',rows:rows});if(!d||!d.ok){alert('Erro: '+((d&&d.erro)||'sem ligação'));return}i.value='';S.e='';S.t='';S.c='';S.q='';S.n=50;if($('fe'))$('fe').value='';if($('ft'))$('ft').value='';if($('q'))$('q').value='';if(U.perfil==='editor')S.g='*';await carregar();alert('Importação concluída: '+(d.importados||rows.length)+' linhas do Excel. Total na app: '+(d.total||S.rows.length)+' estabelecimentos.')}
 async function exportar(){
  await xl();
  const wb=XLSX.utils.book_new();
