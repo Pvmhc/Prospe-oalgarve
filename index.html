@@ -256,6 +256,10 @@ textarea{width:100%;margin-top:10px;border:1px solid var(--bd);border-radius:10p
 .an table{width:100%;border-collapse:collapse;font-size:13px}.an th,.an td{padding:6px 8px;text-align:right;border-bottom:1px solid var(--bd);white-space:nowrap}.an th:first-child,.an td:first-child{text-align:left;white-space:normal}.an th{color:var(--mu);font-weight:600}
 .an .br{display:inline-block;height:8px;border-radius:4px;background:var(--p);vertical-align:middle;margin-left:6px;min-width:1px}.an .fn{display:flex;align-items:center;gap:8px;margin:4px 0;font-size:13px}.an .fn span:first-child{width:96px;color:var(--mu)}.an .fn i{display:block;height:14px;border-radius:4px;background:var(--p)}
 .an .chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}.an .chips button.on{background:var(--p);color:#fff;border-color:var(--p)}.an td.hm{text-align:center;min-width:64px}.an .nt{color:var(--mu);font-size:12px;margin-top:6px}
+
+.an .gr{margin:8px 0}.an .gl{display:flex;justify-content:space-between;font-size:13px;margin-bottom:3px}.an .gb{display:flex;height:16px;border-radius:5px;overflow:hidden;background:var(--bd)}.an .gb i,.an .lg i{display:block}.an .gr small{color:var(--mu);font-size:12px}
+.an .c{background:var(--gn)}.an .x{background:var(--rd)}.an .a{background:#9aa8a2;opacity:.55}.an .gb .a{background:var(--bd);opacity:1;border-left:0}
+.an .lg{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--mu)}.an .lg i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:middle}
 </style></head><body><div class="ip" id="ipOv" role="dialog" aria-modal="true" aria-label="Instalar app"><div class="ipb"><div class="ipi"><svg viewBox="0 0 62 62" width="62" height="62"><rect width="62" height="62" rx="14" fill="#008200"/><path d="M16 32l10 10 20-20" stroke="white" stroke-width="5" fill="none" stroke-linecap="round"/></svg></div>
 <h3>Instalar a app Prospeção</h3><p>Abre mais depressa, direto do ecrã principal e sem a barra do browser.</p>
 <div class="ips" id="ipIOS" style="display:none"><ol><li>Toca no ícone <b>Partilhar</b> (□ com seta ↑) na barra do Safari</li><li>Escolhe <b>"Adicionar ao Ecrã Principal"</b></li><li>Toca em <b>"Adicionar"</b> no canto superior direito</li></ol></div>
@@ -843,35 +847,17 @@ async function guardarEd(id){const c={};let n=0;EDITF.forEach(f=>{if(typeof f===
 const cl=r=>{const h=card(r);return DK()?h.slice(0,h.indexOf('<div class="dt">'))+'</div>':h};
 function painel(){const p=$('dp');if(!DK()){p.innerHTML='';return}const r=S.rows.find(x=>x.id===S.o);p.innerHTML=r?card(r):'<div class="vz">Seleciona um estabelecimento da lista para ver os detalhes.</div>'}
 
-const AN_DIM={seg:['Segmentação',r=>(r.detalhe||{}).segmentacao],tip:['Tipologia',r=>(r.detalhe||{}).tipologia],orla:['Orla',r=>r.orla],visita:['Tipo de visita',r=>r.tipoVisita],loc:['Localidade',r=>r.localidade],gest:['Gestor',r=>r.gestor],marca:['Marca atual',r=>(r.detalhe||{}).marcaAtual],prev:['Previsão',r=>r.previsao]};
-S.an=S.an||'seg';
-function anN(v){const n=parseFloat(String(v==null?'':v).replace(/\s/g,'').replace(',','.'));return isNaN(n)?0:n}
-function anF(n){return Math.round(n).toLocaleString('pt-PT')}
-function anP(a,b){return b?Math.round(a/b*100)+'%':'–'}
-function anG(rows,f){const g={};rows.forEach(r=>{const k=String(f(r)||'').trim()||'(sem dados)';(g[k]=g[k]||[]).push(r)});return g}
-function anSt(rs){const d=r=>r.detalhe||{},c=rs.filter(r=>r.estado==='conquistado'),rc=rs.filter(r=>r.estado==='recusou');
- return{n:rs.length,c:c.length,rc:rc.length,ab:rs.filter(r=>r.estado!=='conquistado'&&r.estado!=='arquivado'&&r.estado!=='recusou').length,
- bT:rs.reduce((a,r)=>a+anN(d(r).prevBarril),0),bC:c.reduce((a,r)=>a+anN(d(r).prevBarril),0),
- gT:rs.reduce((a,r)=>a+anN(d(r).prevGarrafa),0),gC:c.reduce((a,r)=>a+anN(d(r).prevGarrafa),0),
- lT:rs.reduce((a,r)=>a+anN(d(r).prevLuso),0),lC:c.reduce((a,r)=>a+anN(d(r).prevLuso),0)}}
-function anSel(k){S.an=k;draw()}
+
+function anGrupos(m,f){const g={};m.forEach(r=>{const k=String(f(r)||'').trim()||'(sem dados)';(g[k]=g[k]||[]).push(r)});
+ return Object.keys(g).map(k=>({k:k,n:g[k].length,c:g[k].filter(r=>r.estado==='conquistado').length,x:g[k].filter(r=>r.estado==='recusou').length})).sort((a,b)=>b.n-a.n)}
+function anGraf(tit,gr){const mx=Math.max(1,...gr.map(g=>g.n));
+ return '<div class="bx"><h3>'+tit+'</h3>'+gr.map(g=>{const ab=g.n-g.c-g.x,w=v=>(v/mx*100)+'%';
+  return '<div class="gr"><div class="gl"><span>'+esc(g.k)+'</span><b>'+g.n+'</b></div><div class="gb" title="'+g.c+' conquistados · '+g.x+' recusados · '+ab+' em aberto"><i class="c" style="width:'+w(g.c)+'"></i><i class="x" style="width:'+w(g.x)+'"></i><i class="a" style="width:'+w(ab)+'"></i></div><small>'+g.c+' conquistados · '+g.x+' recusados · '+(g.n?Math.round(g.c/g.n*100):0)+'%</small></div>'}).join('')+'</div>'}
 function analise(m){
- const t=anSt(m),E=[['pendente','Pendente'],['planeada','Planeada'],['feita','Visitada'],['falhada','Falhada'],['novavisita','Nova visita'],['recusou','Recusou'],['conquistado','Conquistado'],['arquivado','Arquivado']];
- const mx=Math.max(1,...E.map(e=>m.filter(r=>r.estado===e[0]).length));
- let h='<div class="an"><div class="kp"><div><b>'+t.n+'</b><small>Estabelecimentos</small></div><div><b>'+t.c+'</b><small>Conquistados</small></div><div><b>'+anP(t.c,t.n)+'</b><small>Taxa de conquista</small></div><div><b>'+anP(t.c,t.c+t.rc)+'</b><small>Conversão (conquistou vs recusou)</small></div><div><b>'+t.ab+'</b><small>Em aberto</small></div><div><b>'+anF(t.bC)+'</b><small>Barril conquistado (de '+anF(t.bT)+')</small></div></div>';
- h+='<div class="bx"><h3>Funil por estado</h3>'+E.map(e=>{const n=m.filter(r=>r.estado===e[0]).length;return '<div class="fn"><span>'+e[1]+'</span><i style="width:'+Math.max(2,n/mx*60)+'%"></i><b>'+n+'</b></div>'}).join('')+'</div>';
- h+='<div class="bx"><h3>Performance por dimensão</h3><div class="chips">'+Object.keys(AN_DIM).map(k=>'<button class="btn'+(S.an===k?' on':'')+'" onclick="anSel(\''+k+'\')">'+AN_DIM[k][0]+'</button>').join('')+'</div>';
- const g=anG(m,AN_DIM[S.an][1]),ks=Object.keys(g).sort((a,b)=>g[b].length-g[a].length);
- h+='<table><tr><th>'+AN_DIM[S.an][0]+'</th><th>Total</th><th>Conq.</th><th>Recus.</th><th>Em aberto</th><th>Taxa conquista</th><th>Conversão</th><th>Barril conq./prev.</th><th>Garrafa conq./prev.</th><th>Luso conq./prev.</th></tr>';
- ks.forEach(k=>{const x=anSt(g[k]),p=x.n?x.c/x.n*100:0;h+='<tr><td>'+esc(k)+'</td><td>'+x.n+'</td><td>'+x.c+'</td><td>'+x.rc+'</td><td>'+x.ab+'</td><td>'+anP(x.c,x.n)+'<span class="br" style="width:'+Math.round(p*0.6)+'px"></span></td><td>'+anP(x.c,x.c+x.rc)+'</td><td>'+anF(x.bC)+' / '+anF(x.bT)+'</td><td>'+anF(x.gC)+' / '+anF(x.gT)+'</td><td>'+anF(x.lC)+' / '+anF(x.lT)+'</td></tr>'});
- h+='</table><div class="nt">Taxa de conquista = conquistados ÷ total. Conversão = conquistados ÷ (conquistados + recusaram). Previsões somam o que está preenchido na ficha.</div></div>';
- const gs=anG(m,AN_DIM.seg[1]),gt=anG(m,AN_DIM.tip[1]),sk=Object.keys(gs).sort((a,b)=>gs[b].length-gs[a].length),tk=Object.keys(gt).sort((a,b)=>gt[b].length-gt[a].length);
- h+='<div class="bx"><h3>Segmentação × Tipologia (taxa de conquista · nº de estabelecimentos)</h3><table><tr><th></th>'+sk.map(x=>'<th>'+esc(x)+'</th>').join('')+'</tr>';
- tk.forEach(tp=>{h+='<tr><td>'+esc(tp)+'</td>'+sk.map(sg=>{const rs=m.filter(r=>((r.detalhe||{}).tipologia||'').trim()===(tp==='(sem dados)'?'':tp)&&((r.detalhe||{}).segmentacao||'').trim()===(sg==='(sem dados)'?'':sg));if(!rs.length)return '<td class="hm">·</td>';const c=rs.filter(r=>r.estado==='conquistado').length,p=Math.round(c/rs.length*100);return '<td class="hm" style="background:color-mix(in srgb,var(--p) '+Math.round(p*0.6)+'%,transparent)">'+p+'% <small>('+rs.length+')</small></td>'}).join('')+'</tr>'});
- h+='</table></div>';
- const M=[['matFrio','Frio'],['matChapeus','Chapéus'],['matMesasAltas','Mesas altas'],['matConjuntos','Conjuntos'],['matBidon','Bidon'],['matJardim','Jardim vertical'],['matOutros','Outros']],cq=m.filter(r=>r.estado==='conquistado');
- h+='<div class="bx"><h3>Material colocado</h3><table><tr><th>Material</th><th>Nos conquistados</th><th>Total</th></tr>'+M.map(z=>'<tr><td>'+z[1]+'</td><td>'+anF(cq.reduce((a,r)=>a+anN((r.detalhe||{})[z[0]]),0))+'</td><td>'+anF(m.reduce((a,r)=>a+anN((r.detalhe||{})[z[0]]),0))+'</td></tr>').join('')+'</table></div></div>';
- return h}
+ const d=r=>r.detalhe||{},c=m.filter(r=>r.estado==='conquistado').length,x=m.filter(r=>r.estado==='recusou').length;
+ return '<div class="an"><div class="kp"><div><b>'+m.length+'</b><small>Prospeção (total)</small></div><div><b style="color:var(--gn)">'+c+'</b><small>Conquistados</small></div><div><b style="color:var(--rd)">'+x+'</b><small>Recusados</small></div></div>'
+ +'<div class="lg"><span><i class="c"></i>Conquistados</span><span><i class="x"></i>Recusados</span><span><i class="a"></i>Em aberto</span></div>'
+ +anGraf('Por segmentação',anGrupos(m,r=>d(r).segmentacao))+anGraf('Por tipologia',anGrupos(m,r=>d(r).tipologia))+'</div>'}
 function draw(){draw0();painel();const p=$('mobPopup');if((!DK()||POP)&&p&&!p.hidden&&S.o)mostrarPopupMobile()}
 try{matchMedia('(min-width:1024px)').addEventListener('change',()=>{if(!$('ap').hidden)draw()})}catch(e){}
 function fotoDe(n){if(!n)return'';if(!Object.keys(LG.fotos).length){try{const c=JSON.parse(localStorage.getItem('prospCfg')||'null');if(c&&c.f)LG.fotos=c.f}catch(e){}}const k=Object.keys(LG.fotos).find(x=>mg(x,n));return k?LG.fotos[k]:''}
