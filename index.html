@@ -260,7 +260,7 @@ textarea{width:100%;margin-top:10px;border:1px solid var(--bd);border-radius:10p
 .an .gr{margin:8px 0}.an .gl{display:flex;justify-content:space-between;font-size:13px;margin-bottom:3px}.an .gb{display:flex;height:16px;border-radius:5px;overflow:hidden;background:var(--bd)}.an .gb i,.an .lg i{display:block}.an .gr small{color:var(--mu);font-size:12px}
 .an .c{background:var(--gn)}.an .x{background:var(--rd)}.an .a{background:#9aa8a2;opacity:.55}.an .gb .a{background:var(--bd);opacity:1;border-left:0}
 .an .lg{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--mu)}.an .lg i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:middle}
-</style></head><body><div class="ip" id="ipOv" role="dialog" aria-modal="true" aria-label="Instalar app"><div class="ipb"><div class="ipi"><svg viewBox="0 0 62 62" width="62" height="62"><rect width="62" height="62" rx="14" fill="#008200"/><path d="M16 32l10 10 20-20" stroke="white" stroke-width="5" fill="none" stroke-linecap="round"/></svg></div>
+.an .cv{position:relative;width:100%}</style></head><body><div class="ip" id="ipOv" role="dialog" aria-modal="true" aria-label="Instalar app"><div class="ipb"><div class="ipi"><svg viewBox="0 0 62 62" width="62" height="62"><rect width="62" height="62" rx="14" fill="#008200"/><path d="M16 32l10 10 20-20" stroke="white" stroke-width="5" fill="none" stroke-linecap="round"/></svg></div>
 <h3>Instalar a app Prospeção</h3><p>Abre mais depressa, direto do ecrã principal e sem a barra do browser.</p>
 <div class="ips" id="ipIOS" style="display:none"><ol><li>Toca no ícone <b>Partilhar</b> (□ com seta ↑) na barra do Safari</li><li>Escolhe <b>"Adicionar ao Ecrã Principal"</b></li><li>Toca em <b>"Adicionar"</b> no canto superior direito</li></ol></div>
 <div class="ips" id="ipGen" style="display:none"><ol><li>Toca no menu do browser (⋮ ou ···)</li><li>Escolhe <b>"Instalar aplicação"</b> ou <b>"Adicionar ao ecrã principal"</b></li><li>Confirma tocando em <b>"Instalar"</b> / <b>"Adicionar"</b></li></ol></div>
@@ -850,14 +850,29 @@ function painel(){const p=$('dp');if(!DK()){p.innerHTML='';return}const r=S.rows
 
 function anGrupos(m,f){const g={};m.forEach(r=>{const k=String(f(r)||'').trim()||'(sem dados)';(g[k]=g[k]||[]).push(r)});
  return Object.keys(g).map(k=>({k:k,n:g[k].length,c:g[k].filter(r=>r.estado==='conquistado').length,x:g[k].filter(r=>r.estado==='recusou').length})).sort((a,b)=>b.n-a.n)}
-function anGraf(tit,gr){const mx=Math.max(1,...gr.map(g=>g.n));
- return '<div class="bx"><h3>'+tit+'</h3>'+gr.map(g=>{const ab=g.n-g.c-g.x,w=v=>(v/mx*100)+'%';
-  return '<div class="gr"><div class="gl"><span>'+esc(g.k)+'</span><b><span style="color:var(--gn)">'+g.c+'</span> · <span style="color:var(--rd)">'+g.x+'</span> · '+g.n+'</b></div><div class="gb"><i class="c" style="width:'+w(g.c)+'"></i><i class="x" style="width:'+w(g.x)+'"></i><i class="a" style="width:'+w(ab)+'"></i></div></div>'}).join('')+'</div>'}
+
+function chartJs(){return window.Chart?Promise.resolve():new Promise((ok,er)=>{const t=document.createElement('script');t.src='https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js';t.onload=ok;t.onerror=er;document.head.appendChild(t)})}
 function analise(m){
  const d=r=>r.detalhe||{},c=m.filter(r=>r.estado==='conquistado').length,x=m.filter(r=>r.estado==='recusou').length;
+ S.anD={seg:anGrupos(m,r=>d(r).segmentacao),tip:anGrupos(m,r=>d(r).tipologia)};
  return '<div class="an"><div class="kp"><div><b>'+m.length+'</b><small>Prospeção (total)</small></div><div><b style="color:var(--gn)">'+c+'</b><small>Conquistados</small></div><div><b style="color:var(--rd)">'+x+'</b><small>Recusados</small></div></div>'
- +'<div class="lg"><span><i class="c"></i>Conquistados</span><span><i class="x"></i>Recusados</span><span>Total</span></div>'
- +anGraf('Por segmentação',anGrupos(m,r=>d(r).segmentacao))+anGraf('Por tipologia',anGrupos(m,r=>d(r).tipologia))+'</div>'}
+ +'<div class="bx"><h3>Por segmentação</h3><div class="cv" style="height:320px"><canvas id="cgSeg"></canvas></div></div>'
+ +'<div class="bx"><h3>Por tipologia</h3><div class="cv" style="height:'+Math.max(260,S.anD.tip.length*54+70)+'px"><canvas id="cgTip"></canvas></div></div></div>'}
+const anVal={id:'anVal',afterDatasetsDraw(ch){const c=ch.ctx;c.save();c.font='600 12px system-ui,sans-serif';c.fillStyle=getComputedStyle(document.documentElement).getPropertyValue('--tx')||'#000';const h=ch.options.indexAxis==='y';
+ ch.data.datasets.forEach((ds,i)=>ch.getDatasetMeta(i).data.forEach((b,j)=>{const v=ds.data[j];if(!v)return;if(h){c.textAlign='left';c.textBaseline='middle';c.fillText(v,b.x+4,b.y)}else{c.textAlign='center';c.textBaseline='bottom';c.fillText(v,b.x,b.y-3)}}));c.restore()}};
+async function anDesenhar(){
+ try{await chartJs()}catch(e){$('vA').insertAdjacentHTML('beforeend','<div class="vz">Não foi possível carregar os gráficos (sem ligação).</div>');return}
+ const cs=getComputedStyle(document.documentElement),V=n=>cs.getPropertyValue(n).trim(),tx=V('--tx')||'#000',mu=V('--mu')||'#657786',bd=V('--bd')||'#ddd';
+ (S.anCh||[]).forEach(x=>x.destroy());S.anCh=[];
+ const mk=(id,gr,h)=>{const el=$(id);if(!el||!S.tab||S.tab!=='analise')return;
+  S.anCh.push(new Chart(el,{type:'bar',data:{labels:gr.map(g=>g.k),datasets:[
+   {label:'Prospeção (total)',data:gr.map(g=>g.n),backgroundColor:V('--bl')||'#2563eb'},
+   {label:'Conquistados',data:gr.map(g=>g.c),backgroundColor:V('--gn')||'#008200'},
+   {label:'Recusados',data:gr.map(g=>g.x),backgroundColor:V('--rd')||'#ff2b2b'}]},
+   options:{indexAxis:h?'y':'x',responsive:true,maintainAspectRatio:false,animation:false,layout:{padding:{top:16,right:h?24:0}},
+    plugins:{legend:{position:'top',labels:{color:tx,boxWidth:12}}},
+    scales:{x:{ticks:{color:mu,precision:0},grid:{color:h?bd:'transparent'},beginAtZero:true},y:{ticks:{color:h?tx:mu,precision:0},grid:{color:h?'transparent':bd},beginAtZero:true}}},plugins:[anVal]}))};
+ mk('cgSeg',S.anD.seg,false);mk('cgTip',S.anD.tip,true)}
 function draw(){draw0();painel();const p=$('mobPopup');if((!DK()||POP)&&p&&!p.hidden&&S.o)mostrarPopupMobile()}
 try{matchMedia('(min-width:1024px)').addEventListener('change',()=>{if(!$('ap').hidden)draw()})}catch(e){}
 function fotoDe(n){if(!n)return'';if(!Object.keys(LG.fotos).length){try{const c=JSON.parse(localStorage.getItem('prospCfg')||'null');if(c&&c.f)LG.fotos=c.f}catch(e){}}const k=Object.keys(LG.fotos).find(x=>mg(x,n));return k?LG.fotos[k]:''}
@@ -867,7 +882,7 @@ function draw0(){const ed=U.perfil==='editor',gs=[...new Set(S.rows.map(r=>r.ges
  avatar();const all=ed&&S.g==='*',m=all?S.rows.slice():S.rows.filter(r=>mg(r.gestor,ed?(gs.find(g=>mg(g,S.g))||S.g):U.nome));
  $('tS').classList.toggle('on',S.tab==='semana');$('tT').classList.toggle('on',S.tab==='todos');$('vS').hidden=S.tab!=='semana';$('vT').hidden=S.tab!=='todos';$('tA').classList.toggle('on',S.tab==='analise');$('vA').hidden=S.tab!=='analise';
  $('ed').innerHTML=isAdm()?'<button class="btn bl" onclick="novoAbrir()">＋ Novo estabelecimento</button><button class="btn" onclick="gerar()">Gerar semana</button><button class="btn" onclick="gerar(4)">Gerar 4 semanas</button><button class="btn" onclick="$(\'fx\').click()">Importar Excel</button><button class="btn" onclick="exportar()">Descarregar Excel</button><input id="fx" type="file" accept=".xlsx" hidden onchange="importar(this)">':'<button class="btn bl" onclick="novoAbrir()">＋ Novo estabelecimento</button><button class="btn" onclick="exportar()">Descarregar Excel</button>';
- if(S.tab==='analise'){$('vA').innerHTML=analise(m);return}
+ if(S.tab==='analise'){$('vA').innerHTML=analise(m);anDesenhar();return}
  let l;if(S.tab==='semana'){const d0=new Date(S.seg+'T12:00:00'),d4=new Date(add(S.seg,4)+'T12:00:00'),t=new Date(Date.UTC(d0.getFullYear(),d0.getMonth(),d0.getDate()));t.setUTCDate(t.getUTCDate()+4-(t.getUTCDay()||7));const w=Math.ceil(((t-new Date(Date.UTC(t.getUTCFullYear(),0,1)))/864e5+1)/7);
   $('sT').textContent='Semana '+w+' · '+d0.getDate()+'–'+d4.getDate()+'/'+(d4.getMonth()+1);
   $('ds').innerHTML=[0,1,2,3,4].map(i=>{const d=add(S.seg,i);return '<button class="dia'+(d===S.dia?' on':'')+'" onclick="S.dia=\''+d+'\';S.o=\'\';draw()">'+['Seg','Ter','Qua','Qui','Sex'][i]+'<small>'+m.filter(r=>r.dataPlaneada===d).length+' visitas</small></button>'}).join('');
