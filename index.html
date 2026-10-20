@@ -852,11 +852,11 @@ function anGrupos(m,f){const g={};m.forEach(r=>{const k=String(f(r)||'').trim()|
  return Object.keys(g).map(k=>({k:k,n:g[k].length,c:g[k].filter(r=>r.estado==='conquistado').length,x:g[k].filter(r=>r.estado==='recusou').length})).sort((a,b)=>b.n-a.n)}
 function anGraf(tit,gr){const mx=Math.max(1,...gr.map(g=>g.n));
  return '<div class="bx"><h3>'+tit+'</h3>'+gr.map(g=>{const ab=g.n-g.c-g.x,w=v=>(v/mx*100)+'%';
-  return '<div class="gr"><div class="gl"><span>'+esc(g.k)+'</span><b>'+g.n+'</b></div><div class="gb" title="'+g.c+' conquistados · '+g.x+' recusados · '+ab+' em aberto"><i class="c" style="width:'+w(g.c)+'"></i><i class="x" style="width:'+w(g.x)+'"></i><i class="a" style="width:'+w(ab)+'"></i></div><small>'+g.c+' conquistados · '+g.x+' recusados · '+(g.n?Math.round(g.c/g.n*100):0)+'%</small></div>'}).join('')+'</div>'}
+  return '<div class="gr"><div class="gl"><span>'+esc(g.k)+'</span><b><span style="color:var(--gn)">'+g.c+'</span> · <span style="color:var(--rd)">'+g.x+'</span> · '+g.n+'</b></div><div class="gb"><i class="c" style="width:'+w(g.c)+'"></i><i class="x" style="width:'+w(g.x)+'"></i><i class="a" style="width:'+w(ab)+'"></i></div></div>'}).join('')+'</div>'}
 function analise(m){
  const d=r=>r.detalhe||{},c=m.filter(r=>r.estado==='conquistado').length,x=m.filter(r=>r.estado==='recusou').length;
  return '<div class="an"><div class="kp"><div><b>'+m.length+'</b><small>Prospeção (total)</small></div><div><b style="color:var(--gn)">'+c+'</b><small>Conquistados</small></div><div><b style="color:var(--rd)">'+x+'</b><small>Recusados</small></div></div>'
- +'<div class="lg"><span><i class="c"></i>Conquistados</span><span><i class="x"></i>Recusados</span><span><i class="a"></i>Em aberto</span></div>'
+ +'<div class="lg"><span><i class="c"></i>Conquistados</span><span><i class="x"></i>Recusados</span><span>Total</span></div>'
  +anGraf('Por segmentação',anGrupos(m,r=>d(r).segmentacao))+anGraf('Por tipologia',anGrupos(m,r=>d(r).tipologia))+'</div>'}
 function draw(){draw0();painel();const p=$('mobPopup');if((!DK()||POP)&&p&&!p.hidden&&S.o)mostrarPopupMobile()}
 try{matchMedia('(min-width:1024px)').addEventListener('change',()=>{if(!$('ap').hidden)draw()})}catch(e){}
